@@ -5,30 +5,30 @@ Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Mark Himelstein, Ander
 https://docs.google.com/presentation/d/1Sv4XFGY34lB_NJTfN_IA6Jl-F0dCNIiccfrLA-hPKGQ/edit?usp=sharing[Slide]
 
 == PR merge policy
-Kito: Got some feedback. Proposal now on GitHub. Removed explicit list of people, only mention psABI chairs and the types of people needed for approvals. Chairs will help contact upstream maintainers where needed.
-Mark: Who decides ABI names?
-Kito: Historically decided by GCC developers.
-Mark: Probably needs approval from priv and unpriv chairs.
-Christoph: ILP32/LP64 are standard terms at least.
+Kito: Got some feedback. Proposal now on GitHub. Removed explicit list of people, only mention psABI chairs and the types of people needed for approvals. Chairs will help contact upstream maintainers where needed. +
+Mark: Who decides ABI names? +
+Kito: Historically decided by GCC developers. +
+Mark: Probably needs approval from priv and unpriv chairs. +
+Christoph: ILP32/LP64 are standard terms at least. +
 Various discussions between Mark and Jess about ISA vs ABI. Summary: ABIs and ISAs are mostly orthogonal; can use any ISA extensions with the base soft-float ABIs, but more efficient ABIs rely on certain ISA extensions to be present. For example, ILP32 code can still use F or Zfinx (arguments passed in integer registers, but can be moved into floating-point registers within a function), ILP32F code requires F (but can still use D within a function), and ILP32D code requires D. Need to be different because need to know what FPR register width you can assume, and all objects need to agree on a common minimum. But for Zfinx the GPR size is already fixed, so only one ABI needed. RV32Zdinx uses even register pairs for its instructions. If we don't align double float arguments to register pairs then the calling convention is identical to soft-float, so may not need a new ABI, and this allows interoperability between RV32I and RV32IZfinx code (e.g. optimised soft-float routines on Zfinx platforms, just as you can do today with the soft-float ILP32 and RVF). Unclear whether the extra code size for moving argument registers around in the caller is worse than the extra stack spills from wasting some registers by aligning doubles in even pairs; suspect in practice it doesn't really matter which you use, and thus best to keep it simple and interoperable by sticking with soft-float unless evidence suggests otherwise.
 
 == Lazy binding functions
-Kito: Required for vector calling convention. AArch64 SVE hit this issue before, so we should learn from them and resolve this first. Describes lazy binding. Run-time linker may end up using vector registers during symbol resolution, which would clobber vector argument registers. Could save and restore them, but slow, uses lots of stack, and not needed for most function calls. SVE adds extension to mark functions taking vector register arguments to not be lazily bound. Kai Wang has proposed a similar extension for RISC-V; requires compiler and assembler support.
-Anders: Sounds a lot like temporary registers in fast interrupts group. Problem for toolchain developers with proper register tracking and analysis. Whole-program analysis tells you exactly what registers you're using.
-Jeremy: Concerned it's a very purist view of the world. Full-program compilation not realistic.
-Jim: Not possible with shared libraries and interposition. Can only work for deeply-embedded.
-Kito: Hard to do in dynamic linker.
-Evandro: Asked to look at how interrupt controller interacts with ABI. Interrupts would use EABI convention.
-Anders: What actually is the EABI. Not decided. Don't feel it should be used for most embedded applications, just use UABI. Our toolchain can convey the used register information.
-Jess: Requires link-time generation of interrupt handlesr, or stubs that save/restore and call the real ones.
-Anders: Can slowly do whole-program analysis for small programs.
-Evandro: Willing to contribute to open compilers? If we define it in the ABI, should not be only proprietary toolchains.
-Anders: Should be some sort of standard.
-Evandro: Interesting discussion, but best context is EABI.
-Jess: Interesting discussion, but only usable for embedded use case, or statically-linked Unix binaries, which are very uninteresting and not the norm.
-Kito: Signal handlers are related, but kernel will save/restore register contents.
-Mark: Lots of useful discussions. Can we document some of the rationale for other people who are less aware of the issues?
-Jess: Notes like unpriv and priv ISA would be a good idea in psABI.
+Kito: Required for vector calling convention. AArch64 SVE hit this issue before, so we should learn from them and resolve this first. Describes lazy binding. Run-time linker may end up using vector registers during symbol resolution, which would clobber vector argument registers. Could save and restore them, but slow, uses lots of stack, and not needed for most function calls. SVE adds extension to mark functions taking vector register arguments to not be lazily bound. Kai Wang has proposed a similar extension for RISC-V; requires compiler and assembler support. +
+Anders: Sounds a lot like temporary registers in fast interrupts group. Problem for toolchain developers with proper register tracking and analysis. Whole-program analysis tells you exactly what registers you're using. +
+Jeremy: Concerned it's a very purist view of the world. Full-program compilation not realistic. +
+Jim: Not possible with shared libraries and interposition. Can only work for deeply-embedded. +
+Kito: Hard to do in dynamic linker. +
+Evandro: Asked to look at how interrupt controller interacts with ABI. Interrupts would use EABI convention. +
+Anders: What actually is the EABI. Not decided. Don't feel it should be used for most embedded applications, just use UABI. Our toolchain can convey the used register information. +
+Jess: Requires link-time generation of interrupt handlesr, or stubs that save/restore and call the real ones. +
+Anders: Can slowly do whole-program analysis for small programs. +
+Evandro: Willing to contribute to open compilers? If we define it in the ABI, should not be only proprietary toolchains. +
+Anders: Should be some sort of standard. +
+Evandro: Interesting discussion, but best context is EABI. +
+Jess: Interesting discussion, but only usable for embedded use case, or statically-linked Unix binaries, which are very uninteresting and not the norm. +
+Kito: Signal handlers are related, but kernel will save/restore register contents. +
+Mark: Lots of useful discussions. Can we document some of the rationale for other people who are less aware of the issues? +
+Jess: Notes like unpriv and priv ISA would be a good idea in psABI. +
 Mark: Don't really care where it is, just want it to be somewhere but also not duplicated. You can decide exactly how.
 
 == ELF attributes
