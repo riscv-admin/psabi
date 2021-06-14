@@ -1,0 +1,50 @@
+= psABI Meeting 14th June 2021
+
+Attendees: Kito Cheng, Jessica Clarke, Christoph Mullner, Anders Berg, Ofer Shinaar, Jim Wilson, Craig Blackmore, Simon Cook, Evandro Menezes, Nidal Faour
+
+https://docs.google.com/presentation/d/1B-jrGc6kT-yMk02eHhSRR59inZNrFWdoc0V93zra2ZM/[Slides]
+
+== Policy for Merging PRs
+
+Kito: Discussed at both GNU and LLVM sync-up calls. Will merge next week if no further comments.
+
+== Zfinx ABI
+
+Kito: Long discussion. Concern regarding FCSR for floating-point environment. Separate issue from Zfinx ABI. Offline discussion with Palmer. Proposal: keep -mabi=ilp32/lp64. Linker just uses ELF attributes to check compatibility. Don't need to allocate a bit from e_flags. Keeps number of combinations down. +
+Jess: Worth pointing out FCSR issue also applies to soft-float ABI with hard-float F ISA. Issue is making sure software rounding mode and hardware rounding mode stay in sync in that situation. +
+Christoph: Where are we with finding agreement? This is a blocker for applying for ratification, may be asked for a waiver. +
+Kito: Shouldn't become a blockage. Most are in agreement, just minor discussion around naming. +
+Christoph: Will lack of implementation become a blocker? +
+Jess: binutils already checks ELF attributes, will just need teaching that the two conflict. LLD currently ignores the section. +
+Christoph: Next steps for issue and PR? +
+Jess: Should probably add clarification that Zfinx uses soft-float, but technically could close today and it would be enough. +
+Christoph: Would rather we have a statement in the spec. Can we have that added by next psABI meeting? +
+Jess and Kito: Sure.
+
+== Calling Conventions for Lazily-Bound Functions
+
+Kito: PR against psABI, PoC for LLVM. Missing PoC for binutils and glibc. +
+Evandro: Don't have a dynamic linker? +
+Kito: Have one internally.
+
+== ELF Attributes
+
+Kito: Jess added a few comments after last meeting. Missing program header for ELF header, only had section. Added program header to PR. GCC also wasn't emitting attributes for Linux target, only bare-metal. Now emits for all targets, like LLVM. Already discussed in LLVM and GNU sync-up meetings. Will send program header change for binutils. Will merge PR in a week if no further comments.
+
+== ABI for Overlay
+
+Kito: Overlay requires ABI changes, reserving extra registers. Need some way to identify. Couple of options: could have an attribute with a bitmap of reserved registers, or add an ABI variant attribute. Any comments/preferences? +
+Evandro: Asked for overhaul of proposal. May be radical changes. Too disruptive as it is, requires changes all the way through, creating incompatibilities, and can bit-rot if not maintained. +
+Kito: I'm assuming the ABI won't support a dynamic linker, should be bare-metal environment. +
+Evandro: Yes. Worst part is it creates a new ABI. +
+Craig: Rather than create a new ABI can reserve arbitrary registers. +
+Evandro: Encourage you to find a way that doesn't require reserving registers. +
+Ofer: Hurts performance. +
+Kito: Don't like the way registers are reserved, but not my area of expertise, unlike you. Do you prefer an explicit ABI or reserved register bitmap? +
+Craig: Prefer the latter, more flexible. +
+Christoph: Former could require versioning. +
+Simon: Would rather have a list of registers rather than encode/decode myself. +
+Kito: Can do that. +
+Ofer: Can be useful for systems that just want to reserve registers. +
+Jess: One example is shadow stack. Currently risk having second stack pointer register trashed. Marking as reserved isn't sufficient to ensure it works, as need all functions to manipulate it appropriately, but still required. +
+Kito: Will write up proposal.
