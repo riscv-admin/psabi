@@ -1,0 +1,73 @@
+= psABI Meeting 12th July 2021
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Anders Berg, Christoph Mullner, Craig Blackmore, Evandro Menezes, Jeff Scheel, Jiawei, Jim Wilson, Ofer Shinaar, Simon Cook
+
+== Milestone for First Release
+
+Kito: Working on what will be in the first release. +
+Mark: What will this document be? psABI or UABI? +
+Kito: psABI, there is no EABI. +
+Mark: Need to make clear to chairs that this is the state, just doing psABI not EABI. Need someone from software or platform team to say what's going to be included in the platform. Presume psABI is mostly for A but not M platform. +
+Jess: We don't know what EABI should look like. If people turn up with requirements we can incorporate them, but without that there will be no EABI. Nothing stopping you using UABI for M platform, but may not be what they want. +
+Mark: That's fine, just need to make this clear. M platform people may not be aware; bringing it up allows people to mobilise if needed. Can either of you make it this week? +
+Jess: Yes.
+
+Mark: Have you looked at the non-ISA DoD document? +
+Kito + Jess: Have not seen it. +
+Mark: Non-ISA documents vary a lot, but still have requirements like language used. You have a lot of latitude to develop yourselves (e.g. whether everything must be implemented in both GCC and LLVM). Only get approval by TSC, no ratification by the board. Can you take an action item to look at this? +
+Jess: Sure.
+
+Christoph: Need something specific for Bitmanip? +
+Jess: General version already merged to include arch string in attributes. +
+Mark: Talking with Jim about standardised algorithm for ELF flags and discovery. Pushing through discovery proposal from Philip and Greg. At M level, key-value pair table with every single extension in implementation. Intended so they can check ELF header against those extensions rather than running and trapping at some hard-to-debug place. Is that far enough along in the psABI? +
+Kito: Already include requirements in attributes section. Nothing actually implementing the check though. +
+Philipp: Only important they provide the information, which is there. +
+Mark: Just want to make sure. Last time we talked wasn't yet done. +
+Philipp: Also will be important for vectors for minimum lengths. +
+Mark: Have you seen the proposed platforms? +
+Mark: shares screen +
+Mark: Need to make sure if for example someone implements only Zkr that that works. +
+Jess: That should work today. The string included in the ELF attributes is the full exploded string, with all implied extensions, and the full version numbers, listed. This also makes it easier to parse as it's much more uniform than the arch string format accepted by compilers where many things can be left as implicit.
+Mark: Will parsers exist for this? +
+Jess: GNU binutils and LLVM will include them, as will Linux and FreeBSD, depending on license requirements. +
+Mark: Suggest you point at those on the wiki.
+
+Kito: (going back to slides) First three items are all about calling conventions for new extensions. Then various improvements where documentation is unclear, missing or wrong. Jessica has created a list of important issues: https://github.com/riscv/riscv-elf-psabi-doc/milestone/1. Welcome suggestions for anything you believe is missing that's important.
+
+Evandro: Is Zfh tied to IEEE 754? +
+Kito: bfloat16 is another issue, don't have spec for it. +
+Jess: Not really any different to trying to do bfloat32 with F. C-language types are rather tied to IEEE. +
+Mark: Also variant that's just conversion functions. Also Zvfh for half-float format with vectors. +
+Philipp: Spun-off from main V spec. +
+Kito: Can include in V calling convention. +
+Mark: Just saying in case people didn't know. Important to look at the spreadsheet, only place that's up to date currently.
+
+Jess: Going back to Philipp's point earlier, we currently document V required but not vector lengths. Do we need to define an attribute for that now or can we punt and just enforce that it matches the platform spec? +
+Philipp: Should add attribute, but can require it's the same as the platform spec for now.
+
+== Zfinx ABI
+
+Kito: Now have PR to add note about Zfinx using the soft-float ABI. Disassembler and linker can just use ELF attributes. +
+Kito: Will go to GNU and LLVM lists and get the implementations updated to follow this.
+
+== Undefined weak symbols linker issue
+
+Jess: The medany code model is for when you're building a position-dependent binary but want to be able to link it at any address. Lets you address symbols within 2G of PC. Issue comes with weak symbols, as they can be undefined, and undefined symbols resolve to 0/NULL. Depending on the address, this may not be within 2G of PC on RV64. GNU binutils addresses this by rewriting the AUIPC to an LUI, effectively converting the code model for that symbol to medlow (absolute 32-bit addressing) not medany. LLVM view is that instruction rewriting should be reserved for performance optimisation (relaxation) only, not a required part of the ABI, and that the compiler should always emit code that can be linked as-is, like on other architectures. The proposal is to require the compiler to use the GOT in the case it sees a declaration but not a definition for a weak symbol. This can still be optimised at link time if desired, but that is no longer a requirement. The issue is that binutils does not currently implement that optimisation and so enforcing this in the psABI will regress code size and performance, therefore it is currently strongly advised, but not required, with a note that future versions will require it. +
+Mark: What about platform spec? +
+Jess: Would allow both but strongly deprecate existing practice. +
+Mark: Can go further I think and mandate in platform spec. +
+Jess: As in allow both in the psABI and for RVA20 but enforce GOT in RV22? Is that fine with you Jim? +
+Jim: Cleaner ABI than what we have now, just an issue of finding someone to do the work. +
+Mark: I think psABI being permissive, platform being stricter and identifying work needed to be done and putting in the spreadsheet is the way to go.
+
+== IEEE half-precision floating-point type
+
+Kito: _Float16 already implemented in GCC and Clang, but GCC doesn't have it in C++ mode. X86 has added half-precision instructions so they also need _Float16 in C++.
+
+== New attribute: Tag_RISCV_reserved_register
+
+Kito: Initially wanted to get it merged, Jessica said it's too risky to merge yet as overlay still experimental, I agree.
+
+== Proposla: Add mapping symbols
+
+Kito: Taken from AArch64. Useful when instruction and data are in same section, allows disassembler to know what's an instruction and what's data. Also needed for IFUNCs to be able to get correct disassembly. ELF attribute documents minimal requirement, so e.g. optional vectorised memcpy in an RV64GC libc won't be correctly disassembled. Nelson already provided basic implementation for binutils.
