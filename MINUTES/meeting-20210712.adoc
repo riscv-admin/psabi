@@ -62,7 +62,7 @@ Mark: I think psABI being permissive, platform being stricter and identifying wo
 
 == IEEE half-precision floating-point type
 
-Kito: _Float16 already implemented in GCC and Clang, but GCC doesn't have it in C\+\+ mode. X86 has added half-precision instructions so they also need _Float16 in C\+\+.
+Kito: _Float16 already implemented in GCC and Clang, but GCC doesn't have it in {cpp} mode. X86 has added half-precision instructions so they also need _Float16 in {cpp}.
 
 == New attribute: Tag_RISCV_reserved_register
 
