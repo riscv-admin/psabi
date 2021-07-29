@@ -20,8 +20,8 @@ This document has been approved by the SIG membership at its meeting on XXX.  It
 
 == Scope
 
-The scope of the TG is maintenance the specification for psABI,
-which included but not limited to following items:
+The scope of the TG is to maintain the specification for psABI,
+which includes but is not limited to following items:
 
 1. ELF, DWARF, and other relevant formats.
 2. Code model.
@@ -40,7 +40,7 @@ the psABI specification.
 
 4. Make space for custom extensions to avoid conflicts.
 
-5. Define and explore potential requirements for different ABI variantes (e.g. for deeply embedded use-cases with fast-interrupt entry).
+5. Define and explore potential requirements and develop and maintain ABIs or psABI changes for different ABI variantes (e.g. for deeply embedded use-cases with fast-interrupt entry).
 
 == Document history
 [cols="<1,<2,<3,<4",options="header,pagewidth",]
