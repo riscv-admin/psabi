@@ -1,0 +1,42 @@
+= psABI Meeting 9th August 2021
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Jiawei, Chunyu Liao, Jim Wilson, Anders Berg, Hasmet Akgun, Simon Cook, Evandro Menzes, Mark Himelstein
+
+== Status Updates
+
+Kito: Various new features and fixes merged since last meeting. First is documenting that Zfinx uses the soft-float calling convention. +
+Mark: What should happen if you specify incompatible arguments, e.g. Zfinx but hard-float ABI? Give an error or last one wins? +
+Jess: Both toolchains will give an error if you explicitly request incompatible options. If one is left unspecified it may be inferred from the other. Believe GCC and Clang are the same, but may have minor differences. Should be documented in riscv-toolchain-conventions repo. +
+Mark: Can we have two issues recorded? 1. Get document up-to-date if not already 2. Alyssa(?) going to figure out books other than unpriv and priv, will need input on what will be together as a book +
+Jess: I imagine toolchain conventions, asm manual and ABI docs belong in the same "software" book +
+Mark: Also question of whether you split up based on toolchain or OS +
+Jess: I imagine easiest to do based on TG/WG divisions rather than having to have more cross-team collaboration
+
+Kito: Also added IEEE 754 binary16 C/{cpp} types for Zfh. Now reserve top 8 bits of ELF e_flags field for rare cases when custom extensions absolutely need a flag. Removed documentation about relocations that are only used internally in binutils. Added documentation that RISC-V uses the Itanium {cpp} ABI's name mangling rules.
+
+== Draft for Vector Calling Convention
+
+Kito: Current proposal has v0 as a mask argument register and v8-v23 as 16 vector argument registers, with all registers caller-saved. There's also a proposal to have half callee-saved, with all caller-saved if not calling a function with vector arguments/return value, similar to AArch64. Could support both with an attribute to choose, but may be underused or misused.
+Mark: Both schemes for compatibility or performance difference? +
+Kito: All saved is what's mentioned in an appendix in the current vector ISA spec itself. Other architectures, like X86 and MIPS, use the same for SIMD. For half/half, function call cost gets very high even if you use few registers. +
+Mark: Understood. Is there any real performance data about the difference? +
+Kito: That's the issue, don't have much data yet. +
+Mark: Don't think you should make a decision until you have data, would hate to get it wrong. If you can't get people to do it, put in a request for help. +
+Kito: Part of the problem is we don't internally have much code using vectors.
+
+== Split psABI Into Separate Documents
+
+Kito: Raised in context of platform group. +
+Jess: As brought up last week when asking about what to include in the platform, we currently have three distinct parts to the ABI. First is the calling convention and the types, which can be shared among all RISC-V platforms, e.g. a hypothetical (unlikely) RISC-V macOS or, slightly more likely, a RISC-V Windows (though Windows uses a 32-bit long). Second is the ELF specification, used by FreeBSD, Linux, other Unixes and bare-metal environments. Third is DWARF, developed to go alongside ELF but doesn't require ELF, and used by macOS where the binary format is Mach-O. Splitting allows each document to be referenced independently rather than having to reference specific subsets of one document. +
+Mark: Will these be separate books, chapters, sections? +
+Jess: In the software/toolchains book just as you'd have the toolchain conventions and assembly guide as chapters/sections/sub-books, each of these would be the same, at the top level. +
+Mark: So if structured like unpriv this would be chapters. +
+Jess: Yes.
+
+== Undefined weak symbols
+
+Jess: Again this was discussed last meeting. Currently references to weak symbols for the position-dependent "medany" code model are PC-relative, but if the symbol is undefined at link time then 0 may not be in range of PC. Binutils works around this by rewriting the instruction sequence to use absolute addressing. LLD is reluctant to do so, viewing instruction rewriting as purely an optimisation, not required for correctness. Proposal to fix this wart, based on what other architectures do, is to use the GOT for such cases, with the linker able to optimise it back to the old style if it chooses to, but not required to. LLVM patch to use the GOT has been submitted for review and approved. +
+Kito: Main issue is it will cause code size regressions for embedded. Could require it for Linux and make it optional for embedded, but that makes the spec more complicated. +
+Jim: Yes, issue is embedded, people care a lot about code size there so can't change the implementation until binutils has relaxation support. +
+Jess: Current wording is to have it optional everywhere for now until binutils is updated. Encourage GCC to switch Linux over sooner given the code size increase is likely less of a concern, but may make sense to just switch all targets over at the same time rather than have them behave differently. Jim do you think the current wording is sufficient for you? +
+Jim: I'll take a look.
