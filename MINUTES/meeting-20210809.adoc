@@ -7,7 +7,7 @@ Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Jiawei, Chunyu Liao, J
 Kito: Various new features and fixes merged since last meeting. First is documenting that Zfinx uses the soft-float calling convention. +
 Mark: What should happen if you specify incompatible arguments, e.g. Zfinx but hard-float ABI? Give an error or last one wins? +
 Jess: Both toolchains will give an error if you explicitly request incompatible options. If one is left unspecified it may be inferred from the other. Believe GCC and Clang are the same, but may have minor differences. Should be documented in riscv-toolchain-conventions repo. +
-Mark: Can we have two issues recorded? 1. Get document up-to-date if not already 2. Alyssa(?) going to figure out books other than unpriv and priv, will need input on what will be together as a book +
+Mark: Can we have two issues recorded? 1. Get document up-to-date if not already 2. Elisa going to figure out books other than unpriv and priv, will need input on what will be together as a book +
 Jess: I imagine toolchain conventions, asm manual and ABI docs belong in the same "software" book +
 Mark: Also question of whether you split up based on toolchain or OS +
 Jess: I imagine easiest to do based on TG/WG divisions rather than having to have more cross-team collaboration
