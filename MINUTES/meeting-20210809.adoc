@@ -16,7 +16,7 @@ Kito: Also added IEEE 754 binary16 C/{cpp} types for Zfh. Now reserve top 8 bits
 
 == Draft for Vector Calling Convention
 
-Kito: Current proposal has v0 as a mask argument register and v8-v23 as 16 vector argument registers, with all registers caller-saved. There's also a proposal to have half callee-saved, with all caller-saved if not calling a function with vector arguments/return value, similar to AArch64. Could support both with an attribute to choose, but may be underused or misused.
+Kito: Current proposal has v0 as a mask argument register and v8-v23 as 16 vector argument registers, with all registers caller-saved. There's also a proposal to have half callee-saved, with all caller-saved if not calling a function with vector arguments/return value, similar to AArch64. Could support both with an attribute to choose, but may be underused or misused. +
 Mark: Both schemes for compatibility or performance difference? +
 Kito: All saved is what's mentioned in an appendix in the current vector ISA spec itself. Other architectures, like X86 and MIPS, use the same for SIMD. For half/half, function call cost gets very high even if you use few registers. +
 Mark: Understood. Is there any real performance data about the difference? +
