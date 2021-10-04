@@ -1,0 +1,47 @@
+= psABI Meeting 9th August 2021
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Aaron Durbin, Anders Berg, Christoph Muellner, Jeff Scheel, Jim Wilson, Paolo Savini, Simon Cook, Mark Himelstein, Philipp Tomisch
+
+== Statues Updates
+
+Kito: Going to have first release soon. Next friday stable release, send to SW HC and T&R HSC for review and sign-off. Then half a month for public review, another half month to address any review feedback, and then half a month for TSC approval. +
+Kito: Only four remaining issues for release. First is minimal vector calling convention. Second is documenting existing R_RISCV_ALIGN implementation. Remaining two just editorial changes. All have PRs under review.
+
+== Minimal description for vector register convention
+
+Kito: Same as V spec describes. Simple spec with everything caller-saved for compatibility. New opt-in variant can be added later. Question about whether context switching should be mentioned. +
+Christoph: I believe we all believe it's not needed. +
+Mark: Want to encourage non-normative text to encourage or highlight best-practices. +
+Christoph: I agree, but in this case it's about what the user can expect of the kernel. +
+Mark: We should have a cross-reference to the documentation. +
+Jess: Issue with that is we need to be OS-agnostic; can't just link to Linux kernel document, and don't want to link to every OS's document. Also rarely relevant; most system calls made via function calls and those made via syscall(2) either function calls or using macros from system headers that have the right clobbers, so only matters if manually writing assembly. +
+Mark: You guys make the decision about what the right thing is, just err on the side of more documentation. +
+Christoph: I think would be worth having a note to check the kernel documentation. +
+Jess: I wouldn't bother, but don't object to it.
+
+== Document the behavior of R_RISCV_ALIGN
+
+Kito: Tried to document want binutils did. Jessica noted we didn't correctly handle one corner-case. Should we exclude handling of the edge-case or not? +
+Jim: I don't really care. Been incrementally updating psABI, will continue after official release, what's in the release isn't all that important. +
+Mark: Maybe need to take this offline, but is there a common versioning convention for all softwrae documents? +
+Philipp: No, not at this point. At this point, more concerned about the platform versions' explicit references. Fine for minor improvements, but not for bigger ones. +
+Mark: Maybe major/minor so we can just say major version X? +
+Philipp: In chairs mentioned we have issues for version numbers since inherited from ISAs. +
+Mark: Agreed, don't have to follow ISAs. +
+Philipp: Then just go for semantic versioning, everyone understands that. +
+Mark: Need to document that. +
+Philipp: Can just reference semantic versioning documentation for that. +
+Mark: Let's talk offline about it.
+
+Kito: (back to R_RISCV_ALIGN) I'd prefer to document what we have now then for the first release.
+
+Kito: Thanks to Jessica and Jim for feedback on pull requests. Next time let's discuss what should be in the next release.
+
+== Open Discussion
+
+Christoph: As mentioned last Friday in email need to prepare release plan. Have plan schedule and justification for short review cycle. Should make it more generic so it can be used repeatedly; have general plan and make this an instance of it. +
+Kito: Ok. +
+Christoph: Similar document from Gaj created from knowledge from trace ratification. Will look up link. +
+Mark: Based on a document I wrote he filled out and extended. +
+Philipp: Could you do me a favour? With the ISA and non-ISA documents will have a lot of documents. Can we have this be a template? +
+Jeff: Seen that template you were talking about, Mark.
