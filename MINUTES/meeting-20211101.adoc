@@ -1,0 +1,31 @@
+= psABI meeting 1st November 2021
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Anders Berg, Ibrahim Qashquosh, Jiawei, Jim Wilson, Jojo R, Ofer Shinaar, Peter Lin, Stephan Fan, Stephano Cetola, Chunyu Liao
+
+== Status Updates
+
+Kito: (showing existing timeline for ratification) Currently at SW HC and T&R HC sign-off. Christoph has given a bunch of feedback, will address over the coming days and hope to progress soon.
+
+== Next Release
+
+Kito: Possible new features include defining an embedded ABI. Mark and Philipp have asked it to be transferred to psABI group, but we need to know what the requirements are from people working in the mebedded space. Vendor extensions also important; reserve small range of relocations for vendors but no specification for how to use it. Ideas from Embecosm about how to use it. Is there anything people here believe should be in the next release? (Nothing) If you have anything, please file a GitHub issue. +
+Kito: Outstanding features to address are those relating to overlays (reserved registers and relocations). Clang and LLVM patches are under review but will there be linker patches? Required for adding new features to the psABI as a PoC. +
+Ofer: It's incoming. +
+Kito: Should I create a pull request for the relocations or will you? +
+Ofer: We will. +
+Kito: Reserved registers are useful for other things too, but relocations should wait until patches are more stable; still lots of outstanding review comments so likely to change. +
+Kito: Next is mapping symbols. Binutils already has a basic implementation so should be included in next release. +
+Kito: Then compact ABI, alternative code model to existing ones. +
+Jess: To be clear, not a code model but a new ABI; incompatible with existing code models, hence why it's been pushed back. +
+Kito: SiFive has internal implementation, will talk to Evandro. +
+Kito: Next is vector calling convention; not in this release due to lack of time to do proper analysis but hope it can be done by the next one. +
+Kito: Finally, various misc improvements to the documentation like documenting relaxations or simplifying the description of calling conventions. +
+Kito: This is our list, does anyone else have additions? (Nothing) Again, if you think of something after the meeting, post an issue on GitHub or email the list. +
+Kito: Don't have a clear schedule for the next release, will discuss with Christoph and Philipp what the timeline for the next release should be.
+
+== Open Discussion
+
+Ibrahim: Want to ask about relocations. Non-standard relocations may have conflicts; have you resolved this? +
+Kito: Embecosm has proposed one possible scheme where you use a relocation pair to indicate which vendor's relocation it is. Doesn't work for some systems though as it relies on the RELA format, but the REL format also exists. +
+Ibrahim: Can we also solve with an ELF attribute? +
+Kito: Can record which vendor extension is used for an object but doesn't resolve the conflict; once we link two objects with two vendors need a way to identify the relocations in the output. General principle is you need per-relocation information.
