@@ -1,0 +1,30 @@
+= psABI meeting 29th November 2021
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Stephano Cetola, Jim Wilson, Anders Berg, Craig Blackmore, Ed Jones, Ibrahim Qashqoush, Jeff Scheel, Jiawei, Jojo R, Ofer Shinaar, Simon Cook, Wei Weu, Christoph Muellner
+
+== Status Updates
+
+Kito: Five remaining issues. First four have corresponding pull requests, expect to be merged very soon. Last one is document formatting. Currently following standard RISC-V template, once other PRs merged will update to latest version and avoid unnecessary differences.
+Kito: Updated schedule, expect release candidate on Dec 7th. Feedback from Jeff is that the review period should be extended given it covers the holiday period, so proposal is to extend that to a month. Thoughts? +
+Christoph: Public review, hard to say, can't predict. For horizontal committee, depends on when you intend to have a new document for review. Philipp is busy, reach out to him. +
+Jeff: Do have to get committee sign-of before we can officially freeze. Stephano, should try and get this plan in chairs. No chairs this week, soonest is 15th due to summit, so should look at revising this. 15 day review starting 3rd January would still meet the proposed date. +
+Christoph: I've already seen the previous version so won't need very long, but not sure about Philipp.
+
+== Open Topics
+
+Christoph: Is there anything that would help you to resolve the open PRs sooner? +
+Kito: Almost finalised now, just a few details. +
+Jess: One needs commits squashing, one has a single typo, one needs a three-line diff, one needs backticks changing to italics. Very minor changes.
+
+Kito: Reminder that if you want something to appear in the next release, file an issue or send an email.
+
+Christoph: To explain why things arae delayed. Document never had a formal review, so various formatting issues etc needed to improve the quality. Future releases shouldn't have th same issue due to being more incremental.
+
+Ed: Submitted an LLVM patch to prototype reserved registers as a prototype. +
+Kito: Could ask Craig to review. +
+Ed: Definitely not final, just a rough draft.
+
+Jess: Next meeting would be 27th December, assume nobody wants that. Move it to the other gap in between T&R meetings, ie 10th January? +
+Christoph: Sounds fine. +
+Kito: Jess I think you have the ability to update it? +
+Jess: Yes, I created it, will edit the calendar entry.
