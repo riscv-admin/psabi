@@ -1,0 +1,42 @@
+= psABI meeting 10th January 2022
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Anders Berg, Christoph Muellner, Jeff Scheel, Ed Jones, Ibrahim Qashqoush, Jiawei, JojoR, Peter Lin, Philipp Tomisch, Simon Cook, Nidal Faour, Ren Guo
+
+== Status Updates
+
+Kito: Have a 1.0-rc1. Sent to various open-source communities and have some feedback. Need to sort out formal details of public review. +
+Jeff: Need to go and amend the schedule offline and then see what to do about formal public review. +
+Kito: Didn't include a timeline in the notification. +
+Jeff: Current proposal has 15 day review. ACLINT review posted with 15 day review, prompted some comments, may need to revisit and extend. +
+Philipp: DoD checklist looks good. Need to get to freeze, not all requirements met. +
+Jeff: With a little bit of cleanup should be able to get the plan complete then can work on the rest of the milestones. Kito, ask you to look at the DoD checklist and freeze tab. +
+Jess: What is the difference between row 9 and 10? +
+Jeff: Interesting question. More about making the document fit out terminology. Would also suggest using done rather than n/a.
+
+== Plans for 2022
+
+Kito: One focus for 2022 is improving support for vendor extensions. One notable omission is allowing vendor relocations to coexist. Embecosm had a proposal but needs wider discussion. Will ask Embecosm to put that forward. +
+Jess: Were some technical issues with that. Relied on using one of the two ELF relocation formats, but want to support both. Fuschia uses the other one. +
+Kito: Anything else for vendor extensions? +
+Christoph: Might consider revisiting optimised vector calling convention.
+
+Kito: Second possible topic is EABI. EABI group was inactive for a while so was merged into the psABI group. +
+Philipp: Should take the time here to get Anders's input. +
+Anders: Intention was to write a proposal months ago but got delayed for various reasons. Could write a proposal before next meeting. +
+Philipp: Solves your problem of needing an expert, you have one here. +
+Anders: Two parts need to sort out. First is explicit ABI is not needed. To simplify just identify areas where we deviate from main psABI. Second part is helper functions, but not only for EABI. Have a proposal for how to name them. Needs to be reworked again. +
+Kito: Remember reading your proposal before for helper functions, believe incompatible with existing scheme? Curious why you're defining a new one. +
+Anders: Decided to look it over again before proposing. Will propose a set of options to decide on. +
+Kito: Do you think we need to define the ability for vendors to customise their own ABI, like the proposal for reserved registers for overlay ABI? +
+Anders: Have simple idea for overlay ABI. Can't see there will be so many special needs for vendors. Overlay ABI is different due to needing to reserve registers.
+
+Kito: Any other ideas? Will ask other vendors in private. +
+Philipp: When you ask them, please ask them to put any proposals they have on the list so people can read them before the next meeting. Worried about the efficiency of getting this moving.
+
+Kito: For vector, didn't have resources to dedicate to it. Could do that after the release. +
+Christoph: Could ask if anyone is interested in doing it. +
+Kito: SiFive are interested in vectorising some libraries, so may have interest there. +
+Philipp: Also need to talk to HPC folks, they have ideas. Have large vectors in their computers. +
+Ren: Could use FPU registers? +
+Kito: Issue is much larger than FPU state, and V0 has a special meaning. +
+Philipp: Vector can have multiple ABIs coexist in userspace, whereas kernel is more involved in FPU. Almost certain there will be at least two calling conventions if not more.
