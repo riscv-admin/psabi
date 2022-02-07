@@ -1,0 +1,74 @@
+= psABI meeting 7th February 2022
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Mark Himelstein, Philipp Tomsich, Tao Liu, Anders Berg, Christoph Muellner, Craig Blackmore, David Abdurachmanov, Ed Jones, Ibrahim Qashqoush, Jeff Scheel, Jiawei, Jim Wilson, Nidal Faour, Ofer Shinaar, Wei Wu
+
+== Status Updates
+
+Kito: Still fixing a few things for the release reported by the community. Variant calling convention currently specified too loosely, impossible to implement. Current specification for small structs is wrong in the edge case when not a multiple of XLEN bits. GCC returns the address of structs returned indirectly in a register, and GDB expects this, but this was not documented, and LLVM does not do this. Propose to leave this as not required. +
+Philipp: Is the proposal to make GCC's behaviour the standard? +
+Kito: No, we can document that GCC does is but not a requirement. +
+Philipp: So it becomes a GCC extension? +
+Kito: Yes, though GCC itself does not rely on it. +
+Philipp: Our goal is to ensure interworking between LLVM and GCC. Are you sure this is what we have? +
+Kito: GCC doesn't use it and LLVM didn't implement it, so shouldn't break any assumptions. +
+Philipp: Do we need to open a bug upstream for GDB since it won't work correctly with LLVM binaries? +
+Kito: Yes, should do that. +
+Jess: Do we know if LLDB expects it? I believe it doesn't even implement anything for this yet, but don't know. +
+Philipp: Let's take this offline and figure out what the right thing is. Need to make sure everything works together. DWARF should be able to convey if returned in a register, too. +
+
+Kito: Also adding a medium PIC model to the spec to break it out of the existing medium spec, since describing medium as position independent confuses it with the -fPIC option. +
+Jim: It is position independent, but isn't appropriate for Unix shared libraries. +
+Jess: Yes, unfortunately Unix toolchains conflate position independent code and ELF dynamic library symbol interposition semantics. Should still make it clear that medium is position independent in the technical sense, but clarify that that's not the same as -fPIC. Will discuss on the PR exactly how to achieve this.
+
+Kito: G symbol in our spec is defined as the offset of the entry in the GOT, but we use it as the address. Rui pointed this out, and that other architectures use it to mean the offset. Jessica do you want to give some comments? +
+Jess: Most other architectures use G to mean the offset because that's what they want. 64-bit x86 inherits that definition from 32-bit x86 even though it uses PC-relative GOT accesses. AArch64 defines G like we do, albeit as a function that takes the symbol name. Also addend should be dropped, not implemented by linkers as far as I know. +
+Philipp: Preference would be to align with AArch64 and make it a function that takes the symbol and refers to the address of the GOT entry. Should also make non-zero addends reserved as not expected to be used. +
+Mark: Does any of this preclude pre-linking? +
+Philipp: Not implemented but nothing prevents it.
+
+Kito: Regarding STO_RISCV_VARIANT_CC, can we get a waiver for it? +
+Philipp: Can't get a waiver for the specification, but can get a waiver for the implementation. Also need to get ratification plan up for review. +
+Mark: Would also like to discuss naming for the documents.
+
+== EABI
+
+Kito: Anders Berg is preparing an EABI proposal and sent an initial email. We're also trying to collect input from the community and vendors. +
+Mark: Two notes. Did send email to folks like Krste to make sure they were on the same page. Fairly broad strategic discussion in a bunch of places, want to make sure it has agreement from the leadership. Second point is if we have an EABI we want to make sure naming is consistent and covers them all. +
+Philipp: Lot of things depend on what route we go down. Data types, register usage, stack alignment can be part of our ABI using tags; already have a tag for stack alignment. One thing we need clarity on is the fast interrupt proposal, making sure everybody agrees this is the way forward for RISC-V. +
+Mark: Did you mean even different register conventions can be handled by flags instead of being a completely different ABI? +
+Kito: One thought, maybe the E in EABI should stand for extensible, since it gives people options to deviate from the existing standard ABI.
+
+Anders: RV32E really needs its own ABI due to the register changes. +
+Philipp: Is it more to the point to say that RV32E and what we have in the psABI cannot be interlinked? +
+Anders: Binary you're generating for RV32E can be run on RV32I. +
+Philipp: Yes, but talking about interlinking. Running is a separate aspect. Similar to whether you use hard-float or soft-float calling conventions. +
+Mark: Can we take a step back? Mixing a bunch of things. One thing is the calling convention. Another is what's in the ELF to tell it whether it's compatible. Third is how to communicate this to the community. Can have flags to encode it, but may not be the clearest way to explain it, need a name for something like "RV32E calling conventions". Sounds like there will definitely be different register conventions we need to represent. Third one is more subjective how we communicate and name it. +
+Philipp: I guess I was one step ahead without leaving out the communication aspect. One way for interlinking works, the other way doesn't because it accesses registers that don't exist. Do we want one ABI with all these variations and the ability to interwork, or do we want to fragment it? +
+Mark: Let's have this conversation offline. +
+Philipp: We've been confusing ABI with calling convention and documentation with things like flags. Can be done under one ABI. Don't need tools to support all combinations. +
+Mark: If we have cross-module optimisation will that be compatible with custom register conventions? +
+Philipp: That'll be link-time optimisation, done before register allocation using an intermediate representation. +
+Kito: Didn't have enough time to discuss all these EABI points but here are other aspects.
+
+== More Items For 2022?
+
+Kito: Runtime ABI was bundled by Anders with the EABI proposal, but can be separate work. Need standard document for things like floating-point library functions. +
+Philipp: Let's defer that to another day. Would really like to review our plan today. +
+Kito: Evandro has made a proposal for a large code model. +
+Evandro: Last year had a compact code model proposal where only data could be larger than 2G/4G. Suggestion it didn't go far enough and should include more than 2G/4G of code too. That's what's here, formatted as a working document rather than a patch against existing documents. Other companies reached out and are interested in these features due to needing support for large code and/or data. Can figure out the best way to continue the conversation about it. +
+Kito: Been lacking a large code model for a long time. +
+Philipp: One important question: is this something for the current release or next one? +
+Jess: From my perspective definitely next, will be at least 6 months, likely more, before we'd have something otherwise.
+
+== Open Discussion
+
+Jeff: Plan document is important, DoD is less of a problem. +
+Philipp: Might be some resistance for DoD but should be fine. Rest of the document is the problem. Have 45 day review period, need to get something out for review. +
+Jeff: Originally suggested 15 days, but TSC suggested they don't want that. +
+Philipp: Put quite softly. TSC has very clearly stated everything going forward should be 45 days and cannot be shorted. Didn't understand it as a suggestion, just a requirement. +
+Mark: Problem Krste stated is people just need time to look at it, whether on vacation or for other reasons. Need to live with the fact it's not changing. +
+Philipp: Has two consequences. Need to update the schedule, and need to be very clear when we're submitting it. Would like to give our software members time to review it before we submit it for chairs sign-off. +
+Jeff: So update the document, then to T&R mailing list, then to chairs? +
+Philipp: Yes. If it was ready today, would have it sitting on our mailing list until the plan ready. If plan ready first, don't have strict requirements for how long to leave the document out before official submission, just a few days so our members can speak up if there's something critical. To be clear, willing to submit for Software HC at the same time as sending it to the mailing list, can take a while. +
+Jeff: Kito, if you get new dates in here we can begin scheduling. Biggest thing is needing to plan around the 45 days. If you have questions, please email me, and when you have dates happy to look at that. +
+Philipp: Also want to be clear what we need to finish on the technical side. Can use T&R meeting to escalate any needed decisions.
