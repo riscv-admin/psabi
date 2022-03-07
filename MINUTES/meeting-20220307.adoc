@@ -1,0 +1,71 @@
+= psABI meeting 7th March 2022
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Mark Himelstein, Jeff Scheel, Anders Berg, Christoph Muellner, Craig Blackmore, Ed Jones, Ibrahim Qashqoush, Jiawei, Jim Wilson, Nidal Faour, Ofer Shinaar, Philipp Tomisch, Simon Cook
+
+== Status Updates
+
+Kito: Trying to finish the various pull requests we have, hoping to get them done this week. May need to adjust the schedule one more time, have one significant issue that needs resolving and has not yet had any text written. +
+Jeff: Would like to see an updated set of dates in the plan and get it in front of chairs as soon as possible. +
+Jess: One procedural question, do we need to put the plan before chairs before we can go to review, or can we retroactively get that approved? +
+Mark: Yes, but need committee sign-offs before review, and that's a minimum of two weeks. +
+Jess: So about a month before review sounds about right then? +
+Mark: Yes, can just about do in two weeks but a month more comfortable. +
+Philipp: Every slip uncomfortable for dependencies but can live with this one. +
+Mark: If you have things Jeff and I can help with then get in touch. +
+Philipp: Biggest issue is the 45 day review, not much that can be accelerated. +
+Mark: Need a ratification plan and a final document before committee chairs. All in agreement to go to chairs with ratification plan by next week and in around two or three weeks will come back with document for sign-off? +
+Christoph: Besides changing dates, what's missing in ratification plan? +
+Kito: Think I only need to update dates. +
+Christoph: Dates can still be updated once plan is approved.
+
+== Issue 195: Tag_RISCV_reserved_registers
+
+Kito: Have assembler and disassembler support PoC but no linker support. Needed for overlay but won't be in 1.0. Assume overlay developers would like a stable specification for their implementation to use sooner than later. +
+Christoph: Please add to list of gaps in T&R gap analysis document. Don't think reserving will work, still reserved for a purpose. Leave it out for now and get the release done as soon as possible. +
+Anders: Included in the document I'm writing on deviations, and want to add rules on which registers you can reserve. +
+Philipp: Needed for our work for this year or overlay ABI? +
+Anders: Will be a common feature. +
+Philipp: Want to avoid feature creep. +
+Jess: Not ready, tag parameter needs re-encoding, reuses DWARF encodings which have huge gaps and not practical for uleb128s. Regardless of not being needed for 1.0 either. +
+Philipp: Let's bump it then.
+
+== EABI
+
+Kito: Any further comments on Anders's email? Will keep looking for feedback. +
+Anders: Will be no rules for fewer temporary registers, have solved those problems, keeping the ABIs as similar as possible. +
+Kito: Will you be using the existing attributes mechanism to track the deviations or a new one? +
+Anders: Will need a new tag but believe it can all fit in one. +
+Kito: Will we want presets for some of those deviations, such as a default embedded ABI and an overlay ABI? +
+Anders: Should have some recommendations of things to support, but don't want too many combinations. +
+Mark: Will people actually use this or will they roll their own? +
+Anders: Believe people will actually use this. +
+Mark: Worried because when we talk to embedded people they have tendencies to do their own thing. +
+Anders: At IAR, tools will support every combination, but only prebuild some combinations. +
+Mark: How will this apply to GCC and LLVM? +
+Anders: Don't know. +
+Mark: If IAR has a set of presets and everyone else will do their own, why should we specify everything? +
+Anders: Should specify every combination. +
+Mark: If everyone's doing their own thing, why bother? +
+Philipp: Could have IAR's own document listing standard combinations. What is the motivation for having it in our ABI spec? +
+Anders: Will be useful for anyone supporting the deviations and so we can have interchangeable libraries. More a set of rules of how to do this.
+
+== Elections
+
+Kito: Have a call for candidates for chair and co-chair for the psABI. +
+Mark: My suggestion is to finish the psABI before running an election. +
+Philipp: Agreed. Will be a new TG for a new scope after.
+
+
+== Open Discussion
+
+Christoph: Would like to raise gap analysis; please add known issues in the psABI document, including tickets like the one pinged over the weekend, to the gap analysis document so we have a roadmap we can point to.
+
+Tao: New here. Was unclear how to raise a gap, had to email the list. +
+Mark: Actually we do, for issues with documents there are two official ways, either email the list or submit an issue to GitHub. Bigger issue of comment against live document vs general gap. Latter officially handled by software committee that delegates to subcommittees, which delegate to SIGs. Have no relevant SIGs so falls to T&R subcommittee. General gaps responsibility of T&R subcommittee. +
+Tao: If we identify a gap, are there SLAs? +
+Mark: No, we're a community. Request that committees at least respond within 24h, but no way for us to enforce that kind of thing. There is an escalation path; rule of thumb is ask twice and if you don't receive anything send an email to help@riscv.org.
+
+Mark: Just want to say, this document is really important, so anything we can do to help let us know. +
+Philipp: Over the line counts as a stable version we can use for the next year for all our tools. Anything else can go into a version 2.0 for next year and be put in the backlog for now.
+
+Kito: Personally prefer GitHub issues as more people monitor that, not so many follow the mailing list.
