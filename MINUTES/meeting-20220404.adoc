@@ -1,0 +1,58 @@
+= psABI meeting 4th April 2022
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Anders Berg, Anders Lindgren, Christoph Muellner, Ibrahim Qashqoush, Jeff Scheel, Jiawei, Ofer Shinaar, Philipp Tomsich, Simon Cook
+
+== Status Updates
+
+Kito: Most fixes merged since last meeting. Two items under final review, waiting for relevant community members to ACK changes. One is a last minute change, removing vxrm/vxsat from the spec for now.
+
+== Updated Schedule
+
+Kito: Have proposed schedule, may move a couple of days more to start review at the end of the week or beginning of next week to allow the final changes to be merged.
+
+== EABI
+
+Anders B: Still working on it. Realise I forgot to send an email I wrote last week. Last time thought I had recovered from COVID, turned out to be dormant for a few days, so only properly recovered last week and still working on it. Trying to finalise a first proposal. +
+Anders L: Lead compiler engineer, working on RISC-V for the last four years. Worked on previous RISC architectures with locked (reserved?) registers. Working on making some changes to the proposal.
+
+== Issue 256
+
+Kito: Colleague trying to propose an alternative calling convention for the vector CSRs. Not yet reached consensus and don't want to make last-minute changes. Propose removing that part of the spec for now. Neither GCC nor LLVM dependent on the current behaviour yet, so gives us more time to discuss. Will ask my colleague to give a more complete proposal so we can reach a better decision here. +
+Christoph: Think it's reasonable to pull it out for now due to the ongoing discussion, can't wait on it. +
+Kito: Too rushed to make any decision now. +
+Christoph: Don't need to wait for a decision, can just postpone it.
+
+== Issue 257
+
+Kito: Alibaba developer trying to implement ILP32E spec, not compatible with the ISA spec; ISA allows RV32E with D and Q but ABI does not. Again not rushing to fix this; already declare ILP32E as not frozen, since RV32E itself isn't frozen. If/when we get to changing this we'll need some way to tag versions to indicate incompatibility. +
+Anders B: Is anyone seriously considering RV64E? +
+Kito: Low priority but want to consider it in the spec. +
+Anders B: Thought it wasn't even a topic. +
+Kito: I guess we can focus on RV32E first then. +
+Anders B: For RV32E with F/D/Q is that with a separate FPU register file or Zfinx? +
+Kito: Both valid combinations. +
+Anders B: Should also have hard-float ABIs. +
+Kito: Ok, could be a performance concern otherwise. +
+Jess: If you're doing RV32E presumably you care more about code size not performance? +
+Kito: Would also reduce code size since it avoids moves into GPRs.
+
+== Open Discussion
+
+Jeff: One of the questions I saw via email in the past few days was where we would see the review version of the psABI document and when that would be available. +
+Kito: Have updated DoD document. Can share before next chairs meeting. +
+Jeff: I believe it was a little more specific. When and where will we have a PDF build that will be reviewable by the broader HC and T&R groups. Usually a release in the GitHub repo; don't know what your plans are. +
+Philipp: Christoph posted updated release plan in the chat. Has deadline on Wednesday which I really hope we meet as we are very behind already. +
+Christoph: Have an automated build in the repo. +
+Philipp: Need to put an announcement out though. Need a document; once frozen need to notify everyone anyway. Main thing is whether the timeline holds. +
+Jeff: Less concerned about timelines, just the details. If not going to hold the release for the current reviews then is the current document ready? +
+Kito: Would like to include those changes. +
+Philipp: Don't have to wait for new things. Need to close here on the scope we already agreed on and be able to discuss timelines for future releases. +
+Jeff: Will work with you, that's all I had. +
+Christoph: To make it clear, fine moving this into freeze. +
+Kito: With current version? +
+Christoph: Including the two changes you proposed that have pull reuqests. +
+Kito: Once we have the final version will send you the link to notify you. Not sure of the process for announcing the public review of the document. +
+Christoph: Question is what are the formal steps applied before a document can go into freeze? Maybe Jeff you can answer best? Formally it requires sign-off by the governing committee. +
+Jeff: If you complete all the steps on the freeze tab of the spreadsheet and we have plan approval then can go ahead. +
+Christoph: Just waiting on chairs sign-off. +
+Jeff: Will get vote sent out later Wednesday after tech chairs.
