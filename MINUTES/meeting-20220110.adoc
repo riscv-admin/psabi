@@ -1,6 +1,6 @@
 = psABI meeting 10th January 2022
 
-Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Anders Berg, Christoph Muellner, Jeff Scheel, Ed Jones, Ibrahim Qashqoush, Jiawei, JojoR, Peter Lin, Philipp Tomisch, Simon Cook, Nidal Faour, Ren Guo
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Anders Berg, Christoph Muellner, Jeff Scheel, Ed Jones, Ibrahim Qashqoush, Jiawei, JojoR, Peter Lin, Philipp Tomsich, Simon Cook, Nidal Faour, Ren Guo
 
 == Status Updates
 

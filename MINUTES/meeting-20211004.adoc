@@ -1,6 +1,6 @@
 = psABI Meeting 9th August 2021
 
-Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Aaron Durbin, Anders Berg, Christoph Muellner, Jeff Scheel, Jim Wilson, Paolo Savini, Simon Cook, Mark Himelstein, Philipp Tomisch
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Aaron Durbin, Anders Berg, Christoph Muellner, Jeff Scheel, Jim Wilson, Paolo Savini, Simon Cook, Mark Himelstein, Philipp Tomsich
 
 == Statues Updates
 
