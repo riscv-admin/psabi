@@ -1,0 +1,78 @@
+= psABI meeting 27th June 2022
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Mark Himelstein, Anders Berg, Chunyu Liao, Jiawei, Jim Wilson, Simon Cook, Philipp Tomsich
+
+= Status Updates
+
+Kito: Fixed-point rounding mode and saturation flags ABI was deferred but arch review says it needs to be defined. Bunch of other non-blocking issues also filed by IAR and Rivos (Palmer), will work through those but can proceed without. +
+Mark: Please clarify what non-blocking means? +
+Philipp: Can be addressed after public review.
+
+= VXRM and VXSAT
+
+Kito: Need to define it now to avoid ABI break. Two proposals: follow FCSR/fenv, and define as not preserved/unspecified on entry. +
+Kito: C defines fenv as preserved unless the function documents otherwise. Existing libraries don't document changing fixed point rounding mode so must backup and restore if choosing to follow fenv. Also no default, likely to change often and even within a single implementation (only have dynamic fixed-point rounding mode instructions to save opcode space), unlike fenv. +
+Mark: Does anyone have objecting? Then assume it's what we should do. +
+Philipp: To mirror what I said in the toolchains call, please send an email after the call to document decisions made like this. +
+Mark: Make it affirmative, decided in meeting by vote of no objections and informing you, feel free to comment. +
+Philipp: Gives people a chance to object in an emergency event but otherwise law of the land. +
+Kito: Can wait one or two weeks. +
+Philipp: No, already done, final now, just documenting decision made here. If someone needs to pull the emergency brake they can file an issue during public review. +
+Mark: This is our attempt to get to closure. Can't keep on having weeks of waiting on things we've been discussing for a while.
+
+= Clarification needed for Tag_RISCV_unaligned_access
+
+Kito: Issue #283. Tag is unclear. Different instructions can have different policies (scalar loads/stores vs vector loads/stores vs AMOs), and different extensions (Zam and Zicclsm) for unaligned access support. Current tag just defined to be that the compiler generates unaligned accesses. +
+Mark: As defining profiles, some things will have mandatory and non-mandatory support. Will be extension names for unaligned access coming up. +
+Philipp: This is just marking an object as requiring unaligned accesses. +
+Kito: Could deprecate this tag and describe by the extension names. +
+Jess: Slow vs trap not really relevant, just whether or not it works. Fast always nice and may be more performance sensitive in certain cases. +
+Mark: Agreed, would strike that difference. +
+Philipp: This is documenting it works not fast, but extension names are fast? +
+Kito: Believe the current extensions are for works. +
+Philipp: With IFUNCs etc have concerns about both correctness and speed. +
+Mark: What decides? +
+Philipp: Run-time linker. +
+Mark: With an ELF header flag? +
+Philipp: Either an IFUNC resolver or an ELF capability. +
+Mark: How does it figure it out? +
+Philipp: Let's take it offline. There's the ELF flag and a way to have specialised functions. Will walk you through later.
+
+= Tag_RISCV_arch
+
+Kito: PR #292. Currently states it's the superset of the -march for all object files. Intention was the minimal execution environment. Objects can contain vector instruction, but may not be required if guarded by run-time check. Useful for IFUNC. Didn't state that in the spec. Tried to change it but got pushback. +
+Jess: Don't understand why it's breaking and adding a new tag helps, commented on the issue. Old binaries won't have whatever new tag gets defined so would need to treat the old tag as the default value for the new tag, giving the exact same behaviour as redefining. New binaries would have the new tag but old tools wouldn't know about it, so would conservatively assume the old tag's value as the required environment, which is worse than redefining where it would just work. Also -march isn't the right way to use IFUNCs, that's with function-specific attributes, -march has always been the way to specify the requirements for a file. Only issue is when linking multiple together and calls into one are guarded by dynamic checks in another, but there's no way with current tooling to communicate that high-level intent anyway so that's not a case that matters at the moment. +
+Kito: Already emitted by compilers but almost no consumers. Your view is we should go ahead and change? +
+Jess: Yes but would like clarification from Palmer on why he believes it's breaking.
+
+= Exception pointer/selector registers not specified
+
+Kito: Issue #293. Don't document which registers used for C++ exception handling. Good to document but need to find right terms, couldn't find in x86 or Arm specs.
+
+= Tweak wording for FCSR
+
+Kito: Issues #288 and #289. Current wording is fcsr has thread storage duration, but that applies to language objects not ISA registers. Proposed wording in #288 involves language-specific wording, but #289 borrows language from AArch64. +
+Philipp: Prefer keeping language-specific wording out. To confirm, the wording matches the behaviour needed for C? +
+Kito: Yes. +
+Philipp: One question before we move on. FENV_ACCESS is a standard C pragma, do we need to support it? +
+Kito: Currently GCC and Clang/LLVM only partially support it. +
+Philipp: Will go back and read the spec. +
+Kito: Not blocking so no rush to fix, please submit comments to the PR if you have them.
+
+= Open Discussion
+
+Kito: Will discuss EABI state with Anders. Some progress made but doing internal review so not ready to be made public. Hopefully can discuss initial version soon. +
+Anders: Need to discuss latest iteration with colleagues before we can send anything. Most are away until mid-August, so some time after then. Kept thinking finished but then something new; think this will be the final one. +
+Jess: When you say something new, is this major or minor? +
+Anders: Like when you lock registers you need to have custom versions of setjmp/longjmp. +
+Jess: Sounds like a minor issue though that doesn't preclude looking at it? +
+Anders: Trying to think about how to handle every single feature/deviation. +
+Philipp: For the psABIs we have today this isn't an issue? +
+Anders: Correct. +
+Jess: Would encourage you to get it out sooner and get external eyes on it rather than spending lots of time perfecting it only to risk it not being viable outside IAR for reasons IAR hasn't thought about or isn't concerned with. +
+Anders: Don't intend to spend more time on it, so this will be the final version before making public. Not everything decided yet, such as RV32E register balance, needs testing. +
+Kito: Do you intend to redefine ilp32e? +
+Anders: One exists today but probably not right. Also depends on extensions for push/pop instructions.
+
+Mark: Don't understand what the action items are from this meeting for getting to public review, please send in the next few days. Suggest this group meets more frequently. Who's publishing notes? +
+Jess: I've been taking minutes as usual. Will discuss with Kito and get action items out.
