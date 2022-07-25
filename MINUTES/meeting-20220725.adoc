@@ -1,0 +1,61 @@
+= psABI meeting 25th July 2022
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Jeff Scheel, Anders Berg, Christoph Muellner, Jiawei, Philip Reames, Mark Himelstein, Philipp Tomsich
+
+= Status Update
+
+Kito: Official public review started last week (14th July), will end next month (29th August). Currently no important blockers, please leave feedback if you think something needs addressing. +
+Mark: Please make sure ratification ready checklist is completed so there's no delay after public review. +
+Jess: For regression testing, Zc is on the way and has an interaction with the psABI through RVC ELF flag. Do we need to be concerned about that or can we declare it out of scope for 1.0? +
+Mark: Most of the Zc stuff is not in RVA. I think it's worthy of a question to AR comittee about whether psABI needs to support it if Zc gets ratified this year. Please write up an email and ask them for advice. More general question, Zc is just an example. Also include non-normative note about the policy for future reference. +
+Jeff: AR item is not the review you've already had, it's a follow-up review post public review to check any changes since then. Shorter and quicker, but is a second one.
+
+= Unallocatable Global Pointer
+
+Kito: MaskRay, main LLD contributor, wants GP to be an allocatable register rather than using for linker relaxation. ABI break so would need to be made compatible. Talking with Anders will apply to EABI as a deviation. +
+Philipp: Don't agree it's necessarily EABI. Should keep it in the background that it could be considered in future. Idea not unfounded, extra register always great. +
+Mark: Would like more positive term than deviation. +
+Philipp: Already documented on the ticket this can't go in without issue at the moment. +
+Philip: Might be scope for tweaking wording to allow more flexibility in future. +
+Philipp: Current wording says unallocatable, doesn't stop anyone from using it now. Recommend we continue the discussion on the issue. +
+Kito: Will have other potential changes to registers for future code models. +
+Jess: Such things are ABIs not code models, such as compact code model proposal that is a compact ABI.
+
+= Add the LP64E ABI to support RV64E
+
+Kito: RV64E has been added to the ISA spec but there is no ABI defined. Palmer has proposed adding one based on ILP32E. Proposing deferring to after 1.0, anyone disagree? +
+Philipp: Want to get it done as soon as possible, reduces number of instances of this. Mark, what do you think, close 1.0 and maybe have a remedial 6 months later? +
+Mark: Difficult to get more than one a year. Agree with Philipp, let's not try to do anything else. When you send email to AR for Zc you should also bring this up.
+
+= Define _BitInt ABI
+
+Kito: C32 has defined arbitrary-width integer type _BitInt(N). Implemented in Clang but not GCC. x86-64 has defined it, but I think we should merge after 1.0 release. +
+Philipp: C23 means only an official standard next year. Let's come up with a solution in parallel with ratification. Put pull request up as soon as we have it so people can see it.
+
+= Tag_RISCV_arch: PR 292
+
+Kito: Tried to clarify the tag is for the minimum execution environment. Palmer has concerns about that breaking things. Clarified it's a matter of principle not changing definition. Can either just update definition anyway or add new tag stating it's the new definition. +
+Jess: To clarify, his concern is that binaries might have the wrong value for the tag but currently work because nothing bothers to check them?
+Kito: Believe it's just a matter of principle. +
+Jess: If it's just principle I don't really care, not going to not make changes that are in reality fine to make just because it feels wrong. But if there are real concerns then we should listen to them. Don't think there's a problem with adding validation to check things that were in reality already broken. +
+Kito: So you are in favour of just updating the definition? +
+Jess: Assuming understanding of his concerns are correct. Can you get him to just comment on the issue rather than relaying through you?
+
+Philipp: Before going on to EABI let's deal any other immediate issues for the current 1.0 work. Are there any blocking issues? +
+Kito: Not currently.
+
+= EABI
+
+Kito: Based on main ABIs with deviations, current proposal comes from IAR. Anders, do you want to talk about it? +
+Anders: Just an introduction, deviations not just for embedded applications, set of features for any. +
+Mark: Could you explain about the usage of this? Just an ELF flag? Whole process? What happens if you mix library with deviation with executable that doesn't? +
+Anders: Designed so you can interlink. +
+Philipp: Does that mean EABI binaries will be interworkable? +
+Anders: Have identified every feature that might want to deviate. Some can be ratified more quickly than others. +
+Mark: Can be identified so implementations that don't implement a feature can just not execute it? +
+Philipp: OSes don't execute binaries they don't have handlers for. If they don't check the headers they're in the world of unfounded assumptions. +
+Mark: But do OSes today check them? Need to be clear of the minimal burden on implementations, that they check the headers and don't execute ones they don't support. +
+Jess: Unfortunately if you make OSes reject binaries with unknown flags you can't then easily add new ones; toolchains won't use them because existing OSes will reject them, even if they are in reality compatible, and you can't know which ones to check before they're defined. +
+Philipp: Should add non-normative note reminding people there will be other ABIs in future. +
+Jess: Can do but not sure what it achieves given you can't do anything about it as an implementer without knowing the future. +
+Philipp: Means people aren't so surprised when we add new ones and can point at it. Also have the ELF ABI version if needed, though nothing currently checks that.
