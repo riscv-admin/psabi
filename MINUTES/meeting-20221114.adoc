@@ -1,0 +1,81 @@
+= psABI meeting 14th November 2022
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Jeff Scheel, Mark Himelstein, Shihua, Anders Berg, Anton Afanasyev, Christoph Muellner, Eop Chen, James Ball, Jiawei, Luis Marques, Philip, Philipp Tomsich, Simon Cook, Tao Liu, Wei Wu, Tariq Kurd, Sinan
+
+= Status Update
+
+Kito: BOD approved? +
+Jeff: Have been ratified, moved on the webpage. +
+Philipp: Approved in the last meeting. Now working on next version. Need scope and charter for next year's version. +
+Jeff: Don't need to rewrite charter fully, just revisit. +
+Philipp: Need to make sure we have a scope that gets delivered on time next year.
+
+= Future version scheme for psABI
+
+Kito: Unlike ISA extensions will have future releases so need versions beyond 1.0. +
+Philipp: Came to a conclusion for all of the software specs. Following semantic version. Given new ABIs add new relocations that software written for old ABIs won't understand, means new major version.
+
+= Collect goals for the next release
+
+Kito: Have various potential features or the next release. +
+Mark: List should be given to next TG. If others have additional topics please add to the list. +
+Philipp: Missing atomics and need to look at C23; has bit-precise types. +
+Christoph: Could create Google Doc for this. +
+Jeff: Zc extensions?
+
+= psABI TG - Future Plan
+
+Kito: Now ratified, need to create a new TG. Not sure what happens here. +
+Mark: TG is officially done, get a couple more meetings. Need to go back and ask for a new TG with a call for candidates, though can be the same candidates. Limited resources inside RVI, want to make sure needed resources are available, so no ongoing TGs, just SIGs which spawn the entities creating work products. Could have a psABI SIG. +
+Philipp: Have the T&R SIG. +
+Mark: Had some SIGs that lasted multiple years without achieving goals, this is to avoid that. +
+Philipp: Need to work with Christoph to figure out how to timebox this; have too many things to do in one year. +
+Mark: By early next year should be going to TSC for new group approval. +
+Philipp: Need it on TSC's list for their first meeting next year given how much we have for next year. Want to be ratified by summit of next year, though can be ratified in November board meeting rather than October meeting. +
+Christoph: One more thing: thanks to Kito and Jessica for driving this and getting this ratified.
+
+= Document relaxation and special section in Zc extension
+
+Kito: Tariq, do you want to explain this? +
+Tariq: Idea is we have function addresses in a table and a 16-bit encoding to index the table. Has a big impact on the code size, especially when functions are a long way away. +
+Philipp: What happens with ILP32 binaries on an RV64 system? +
+Tariq: Always done on XLEN. Had discussions about reprogramming XLEN, then CSR gets sign-extended. In this case though you need to pad to 64-bit. +
+Philipp: Shouldn't be much of a size different between an RV32 and an RV64 core. +
+Tariq: Could have gone with 32-bit offset for more efficiency on RV64 instead but would require extra cycle to do the add. Not allowed by AR to change spec so want to know what we need to do on the ABI front. +
+Philipp: SW review coming up, depending on outcome may need to talk to AR. +
+Jess: On the ABI front, fine to require execute permission if that's what everyone else agrees is what the ISA should do, just need to make sure that's really what you want, along with the associated restrictions. Will also be minor adjustments to section names etc for consistency.
+
+= Add ELF flags for some profile-0.8 extensions
+
+Kito: Could use ELF flags like RVC, RVE, float ABI etc but will run out of flags quickly. Could use ELF arch attribute. Could add new tag.
+
+= ELF ABI support for RISC-V profiles
+
+Kito: Should we have a new ELF attribute to mark support for/conformance with a specific profile? Could be faster way to check compatibility. If binary is compiled for RVA22U64 with X vendor extension, is it RVA22U64-compatible? +
+Philipp: If a binary only needs a subset of the profile it shouldn't signal it needs all of it. Also, given cost of setting up address space and loading ELF file, how much would it actually speed up? +
+Kito: Does anyone think we should add the tag? +
+Jess: Will need to support use cases without the profile, so redundant. +
+Philipp: More than just redundant, overly restricting. +
+Jess: Trivial example: RV64I binary will be compatible with future profiles yet won't indicate conformance. Also a point for T&R to look at tools signalling profile conformance based on the arch string in eg readelf. +
+Philipp: May need to pipe string into RV-specific tool to avoid burdening implementations. +
+Jess: Will need tables for forward mapping anyway so probably not much additional burden.
+
+= ABI alignment of vector types
+
+Kito: Have not specified alignment of vector types. Could align based on element type, align to 16 bytes (same as stack alignment), which wastes space on Zve32* and Zve64* but not for V which requires VLEN to be at least 16, or do something else. +
+Jess: Only first two really make sense. Stack realignment on any vector use will be inefficient, and LMUL-dependent sounds like a headache. Choice between the first two should be based on what hardware designers say will be efficient. +
+Philip: Current alignment in LLVM is obviously broken. Also agree we want one of the first two. Preference would be for the first option provided hardware architects say it's not overly inefficient compared to the second for real hardware. +
+Jess: Agree, but would rephrase slightly to include future potentially real hardware. +
+Philip: Agreed.
+
+= EABI
+
+Kito: Last meeting discussed alternative name for deviations as it sounds negative. +
+Jess: Need to be careful it doesn't sound like extra features, which might imply compatibility, or options without clearly conveying that one choice is the default and the other is an incompatible one you should only pick if needed.
+
+= Open Discussion
+
+Kito: Should we document LLVM's current vector calling convention as the default one? +
+Jess: May be a good starting point at least? +
+Philipp: Changing the intrinsics API anyway so compatibility not a huge concern. +
+Philip: Current implementation has known issues, contradicts spec in places so requires changes anyway.
