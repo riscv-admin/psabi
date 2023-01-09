@@ -1,0 +1,46 @@
+= psABI meeting 9th January 2023
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Philipp Tomsich, Anders Berg, Anton Afanasyev, Christoph Muellner, Ed Jones, Ibrahim Qashqoush, Liao Shihua, Luis Marques, Jeff Scheel, Philip Reames
+
+= psABI TG Status
+
+Kito: 1.0 was ratified last year so current TG has accomplished goal and will be shut down. Toolchain SIG has taken over governance. +
+Christoph: Normal for TGs when they complete work product, how TGs are defined. Here have continuous topic relevant for the whole toolchain ecosystem, still have to work on the next parts. Formally, continuous topics handled by SIG, and will create new TG, but since TG in good hands have asked current chairs to continue maintenance and prepare agenda for next TG for ratifying next version in autumn. +
+Philipp: Don't think we can get long list done by then. +
+Christoph: TG formally shut down, but Kito still in charge of psABI topics. +
+Philipp: Two things: thank you Kito for merging things related to Zc, and congratulations on your award. Very happy Kito is in charge of maintenance work in between TGs. CCM meeting tomorrow, should have slides outlining what next TG needs to achieve to request its formation. +
+
+= Items for the next release
+
+Kito: Have a lot of things on the list here, should we have multiple TGs, e.g. for embedded ABI? +
+Philipp: Thinking we'd have two groups, one for embedded, one for new year work package and discussing larger changes. Single meeting. All pretty clear on what's needed. Want to make sure we complete on feature ones.
+Jess: Two kinds of features here, the ones that are relatively uninteresting from a specification point of view, and those that need more work to figure out what should be specified, like the vector ABI. +
+Philipp: Lot of companies here today, should be able to get some of this driven forward. Do agree very different effort. ILP32 on RV64 is uninteresting for the specification but important for the ecosystem to get away from RV32 Linux for people switching from 32-bit Arm cores. +
+Jess: Point is some of these can't just be done by chairs, dependent on other people helping out, even if managed by chairs.
+
+Philipp: Where do we stand on large code model? +
+Jess: Can fudge it with the GOT for large data, large code itself is harder due to range extension thunks and don't have spare register like AArch64. +
+Philipp: Have Philip there and says Rivos interested, do you have any information and whether it'd be likely to make this release? +
+Philip: Don't have much information at the moment. Current best guess is it'd slip to the next release.
+
+Kito: SiFive interested in stack frame layout and TLSDESC. +
+Philipp: Can mark in bold if you have resources, important enough to get done.
+
+Kito: Anyone interested in others? +
+Philipp: Vrull interested in alignment relocations, maybe also ABI versioning/breakage. For atomics ABI give me a week or two to figure out if we want to. Jeremy Bennett walked up to me at summit and reminded me Embecosm were very interested in it. +
+Jess: Kito and I were discussing before the call, have an idea for how to get past issues from prior versions. +
+Philipp: More talking about people to implement.
+
+Philipp: Is the current redzone proposal like is done on Arm or POWER? +
+Kito: I assume it's like x86. +
+Jess: What's the justification for wanting it? Type punning via memory? +
+Philip: Lots of small things, emergency spill slot, optimising leaf functions, no one big feature, but does help make toolchain implementation easier.
+
+= Call for chair/vice-chair candidates for psABI TG
+
+Philipp: Want this to be figured out by end of January to align with planned TG formation timeline.
+
+= Open discussion
+
+Jeff: Missed start, what's the status of Zc PR? +
+Philipp: Merged, but need to track PoC to make sure it's updated to match.
