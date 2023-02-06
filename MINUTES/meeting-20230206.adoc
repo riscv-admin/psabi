@@ -1,0 +1,65 @@
+= psABI meeting 6th February 2023
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Luis Marques, Anders Berg, Craig Topper, Ibrahim Qashqoush, Jiawei, JojoR, Philip Reames, Philipp Tomsich, Shihua, Simon Cook, Wei Wu, Greg McGary
+
+= New Issues from GitHub
+
+Kito: 5 new important issues this month
+
+= 358 Clarification of rules for flattening structs containing arrays of empty records
+
+Kito: Didn't state how to handle zero-length arrays of empty structs. Need to specify whether it's empty or not for the ABI purpose. GCC and Clang both do the former. +
+Jess: I thought they currently differed and that's why the issue with filed? Thus would need to decide which one to go with, which probably means GCC given it came first. +
+Philipp: Also my understanding. +
+Kito: Let's discuss further on the issue.
+
+= 360 Define mandatory/optional attribute tag
+
+Kito: Current tag encoding tells you whether it's a string or an integer, but need to know whether it's mandatory to understand a particular tag or not to ensure we don't have compatibility issues in future. Proposed rule is to look at tag mod 128 being less than 64. +
+Philipp: Why 64? Likely to be unevenly allocated, may quickly get big. +
+Kito: Tag is encoded as uleb128, can get as big as we like. Rule is also the same as Arm. +
+Jess: Hard to come up with anything else. Since it's uleb128 there's no MSB we can easily use. Bumping up to 512/256 would use multi-byte encodings for optional. Making much smaller would mess with interpretation of existing tags. Currently only have around 10 tags, if we hit 128 then something's gone wrong, that's a lot of metadata.
+
+= 361 Define relocations for ULEB128 value: R_RISCV_SET_ULEB128 and R_RISCV_SUB_ULEB128
+
+Kito: Proposed a while ago by Andes but not pushed forwards. Adds relocations for uleb128 values for exception tables and DWARF debug. Some DWARF 5 opcodes only support uleb128. Have PoC for binutils, LLVM and LLD.
+
+= 362 Open the relocation number more than 255
+
+Kito: Currently only define relocations between 0 and 255 since that's all that's provided by 32-bit ELF. 64-bit has a 32-bit field, though no target needs anywhere near that many. Propose specifying up to 12 bits for now, standard use up to 2047 and non-standard use from 2047 to 4095. +
+Simon: Unless we need to use those upper bits I don't like the idea of having RV64-only relocations. +
+Jess: Already have some that should have been allocated there. R_RISCV_64 wastes precious encoding space by not being above 255. +
+Philipp: Just a reminder that we will end up with ILP32 RV64. +
+Kito: Need to make sure any relocations won't apply to ILP32 RV64. +
+Philipp: So won't get any vendor relocations for RV32 or ILP32 RV64. +
+Simon: New ones above what's in the spec. +
+Jess: Already have 96 I think, last 64 and 32.
+
+= 363 Define PLT-generating PC-relative data relocation: R_RISCV_PLT32
+
+Kito: Proposed by Google/Fuschia for new experimental {Cpp} vtable ABI. Already accepted by x86 and AArch64. May want a tag to indicate the ABI. +
+Jess: Doesn't seem like our responsibility, it's a cross-target option. Likely to be tied to the OS anyway. If you enable an option named -fexperimental-relative-{cpp}-abi-vtables then you get what you asked for.
+
+= psABI 2.0 Plan
+
+Kito: Must complete al high priority items before freezing 2.0. Each must have company owning it; should provide contact window and PoC schedule. Current high priority items are vector ABI (SiFive), ABI versioning/breakage (VRULL), alignment relocation (VRULL), flexible eABI (IAR), runtime library ABI (IAR) and ePIC (lowRISC). +
+Philipp: Also want to get large code model done. +
+Philip: Was asked at the last meeting if Rivos could lead it. Asked on it internally, not high priority, so should have another owner, but will have someone working on it in the background. +
+Kito: Atomic ABI and vendor relocations are candidates with no owners. Memory TG may be interested in the former. For vendor relocations are Embecosm still working on it? +
+Simon: Will see internally if we want to and can own it. +
+Jess: Two aspects, writing down and agreeing on the scheme and then implementing it. For the former I have a proposal I need to write down but brought up last time that addresses the issues from the previous proposal from Embecosm. But don't have the resources to do a PoC. +
+Simon: Was this noted down? +
+Jess: I think so briefly. Basic idea is to encode the vendor in the vendor prefix relocation symbol name rather than addend since the latter doesn't exist in some ELF formats. +
+Philipp: Some of these can be dropped if needed, such as embedded ABI, only affect limited subset of systems.
+
+Kito: If IAR don't have GCC/LLVM expertise then can get help from PLCT for open-source PoC. +
+Anders: Will be naming scheme etc that anyone can implement. Have a lot of hand-written assembly. Will be based on knowledge we have from implementing those.
+
+= Open Discussion
+
+Kito: Any items? +
+Luis: Quick question. Has anybody recently given thought about sharing AUIPC between instructions? Jim believed was unworkable with current ISA a few years ago. +
+Jess: Believe if you overalign both the AUIPC and the symbol it points to you can make it work. +
+Luis: Jim believed there were also issues with relaxation ordering. +
+Jess: Not sure I can see what they are. +
+Philip: Was looking into related things a week ago for global merging in LLVM but not actively working on this.
