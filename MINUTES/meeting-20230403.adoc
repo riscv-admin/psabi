@@ -1,0 +1,52 @@
+= psABI meeting 3rd April 2023
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Jeff Scheel, Anders Berg, Jiawei, Rui Ueyama, Luis Marques, Paul Walmsley, Petr Hosek, Philip Reames, Shihua, Simon Cook, Tatsuyuki Ishi, Anton Afanasyev, Aditya, Elliott Hughes
+
+= Recent Changes
+
+Kito: Three major things merged: mapping symbols, ULEB128 relocation and PLT-generating PC-relative data relocations.
+
+= #373 TLS Descriptors Proposal
+
+Tatsuyuki: Current TLS ABI has a few issues. Two kinds of resolvers, slow and fast; slow looks up from DTV, fast just uses TP offset. Traditional GD model hardcoded to slow path, TLSDESC adds function pointer to allow rtld to pick path, and calling convention makes all registers callee-saved. Link-time relaxation also limited in what it can do, since register allocation cannot be undone. Finally, no relocation on call instruction for existing GD model to indicate which variable it refers to, so linker cannot remove it. TLSDESC proposal for RISC-V is translation of AArch64 sequence, with two differences, larger descriptor slot and relaxation considerations. Proposal uses 4 pointers rather than 2, chosen to match space glibc needs (referred to indirectly on other architectures in glibc), removing need for allocated memory, at the expense of GOT space. Current proposal allows instructions to be scheduled freely. Relaxation requires no new data dependencies or registers. In some cases code won't be fully optimised as low 12 bits of TP offset not folded into load immediate, instead uses separate add. Proposal is in GitHub, currently modifying GCC, binutils and glibc for prototype. +
+Jessica: Descriptor size chosen based on glibc. Have you looked at other implementations to see if that would waste space of be inefficient? +
+Tatsuyuki: Haven't looked at it, should look at bionic. +
+Jessica: Also FreeBSD, not sure if other implementations exist. +
+Philip: What's the performance benefit of this in real workloads? +
+Rui: If you choose correct compiler flags then not an issue, but people don't, and will default to model that supports dlopen. No real downside. +
+Philip: Are there workloads sensitive to this? +
+Jessica: Two main places, malloc for thread-local pools (e.g. in jemalloc) and locales, where current locale is thread-locale (in particular FreeBSD has inline functions in headers that reference them, so third-party library compiler flags can have an effect). Don't have numbers, but FreeBSD recently switched to using initial exec for libc motivated by a developer noticing poor performance. +
+Elliott: Would be nice to ship Android with TLSDESC by default for RISC-V, otherwise shipping without best ELF TLS implementation available. Zygote model means anything developer writes is shared object.
+
+= #367 Add ABI information for \__bf16
+
+Kito: Need PoC and to choose how to mangle; AArch64 and LLVM for x86 uses u6\__bf16 (target-specific type), GCC for x86 uses DF16b (std::bfloat16_t). Would prefer first, Arm discussing how to migrate to latter after already shipping former. Note upstream Itanium {Cpp} spec change not yet merged.
+
+= #369 Specify the stack slot the frame pointer points to
+
+Kito: Discussed for multiple years but recently revived by Paul. Current proposal is to mirror AArch64; standardised frame layout, but allow platforms to have weaker conformance.
+
+= #370 Specify a platform reserved register
+
+Kito: Candidates are s11 and gp. Currently prefer using gp register. Do we need a non-gp register, and do we need an attribute for gp's usage? +
+Anders: No need for more platform registers, will be proposal for how to reserve registers anyway and users can reserve as many as they need. +
+Elliott: On Android side, x18 turned out to be a bad idea, can't move forwards or backwards. Better to not use a general-purpose register. Don't know if that will happen in time though and want to ensure feature parity. Feel gp is best option if needed though since not used for much anyway. +
+Kito: Do we need the attribute? +
+Jessica: Imagine useful for Android if it ends up needing gp, provides easier migration path as can detect usage, rather than not knowing like on AArch64. +
+Elliott: Yes.
+
+= #372 Allow optional uniquifier for mapping symbol
+
+Kito: Mapping symbol was merged, but without uniquifier support. This PR adds that, like on Arm/AArch64.
+
+= #375 Add placeholder for runtime library ABI
+
+Kito: No spec for current compiler helper functions, and have had incompatibilities.
+
+= psABI 2.0 Plan
+
+Kito: As with last meeting. Have high-priority items with owners, who should give contact window and schedule for PoC to ensure completion. Two items of interest (atomics ABI and vendor relocations) lacking owners.
+
+= Status Update for Vector ABI
+
+Kito: Vector type alignment wasn't specified, currently preparing draft proposal, possibly next week. Will report on new proposal for vector calling convention in next meeting. Current schedule 1st May for draft and PoC, experimental results and analysis 19th May.
