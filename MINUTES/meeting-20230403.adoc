@@ -18,9 +18,9 @@ Philip: Are there workloads sensitive to this? +
 Jessica: Two main places, malloc for thread-local pools (e.g. in jemalloc) and locales, where current locale is thread-locale (in particular FreeBSD has inline functions in headers that reference them, so third-party library compiler flags can have an effect). Don't have numbers, but FreeBSD recently switched to using initial exec for libc motivated by a developer noticing poor performance. +
 Elliott: Would be nice to ship Android with TLSDESC by default for RISC-V, otherwise shipping without best ELF TLS implementation available. Zygote model means anything developer writes is shared object.
 
-= #367 Add ABI information for \__bf16
+= #367 Add ABI information for \\__bf16
 
-Kito: Need PoC and to choose how to mangle; AArch64 and LLVM for x86 uses u6\__bf16 (target-specific type), GCC for x86 uses DF16b (std::bfloat16_t). Would prefer first, Arm discussing how to migrate to latter after already shipping former. Note upstream Itanium {Cpp} spec change not yet merged.
+Kito: Need PoC and to choose how to mangle; AArch64 and LLVM for x86 uses u6\\__bf16 (target-specific type), GCC for x86 uses DF16b (std::bfloat16_t). Would prefer first, Arm discussing how to migrate to latter after already shipping former. Note upstream Itanium {Cpp} spec change not yet merged.
 
 = #369 Specify the stack slot the frame pointer points to
 
