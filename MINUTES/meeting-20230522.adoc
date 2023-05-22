@@ -1,0 +1,98 @@
+= psABI meeting 22nd May 2023
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Petr Hosek, Allison Randal, Christoph Muellner, Craig Topper, David Brash, Elliot Hughes, Guo Ren, Hans Boehm, Jeremy Bennet, JojoR, Luis Marques, Palmer Dabbelt, Patrick O'Neill, Paul Kirth, Sergei Lewis, Shihua, Tatsuyuki Ishi, Yixuan Chen, Yulong, Anders Berg, Jiawei
+
+= Status Update
+
+Kito: New PRs for vector ABI, atomics and ilp32 on RV64. Updates on TLSDESC and __bf16.
+
+= __bf16 Type
+
+Kito: Itanium {Cpp} ABI has landed support for std::bfloat16_t so no longer blocked. Need to decide operational semantics.
+
+= Atomics
+
+Kito: Have three different atomic mappings: A.6, A.6+fence and A.7. A.6 and A.6+fence are compatible, and A.6+fence and A.7 are compatible, but A.6 and A.7 are not compatible. GCC's old mapping can be ignored since it's buggy. Current GCC implements A.6+fence. Current LLVM implements A.6, patch exists to migrate to A.6+fence but still under discussion. +
+Hans: Understanding is LLVM is waiting for us, rather than seeing active discussion. Point of A.6+fence is as a compatibility bridge between A.6 and A.7; means no ABI break when go to A.7 for those without A.6 code, and minimises future break for those that do. +
+Philip: Adding compatibility does not avoid ABI break. Still exists between A.6 and A.7. All it does is mean more code that exists in the wild when that switch is made that is compatible. Will still be code out there with A.6 code. +
+Several people: Agreed. +
+Palmer: This is why we're here to discuss the flags to detect incompatibility. Kito and I were talking about it last week and realised it would be a mess otherwise. +
+Kito: Question of how many bits we need. +
+Palmer: Have four ABIs. GCC that's broken, but nice to detect, plus A.6, A.6+fence and A.7. Unless nobody cares about A.6, in which case could just encode A.7 compatibility. Risk of A.6+fence is hurting performance on cores not designed for it, including upcoming cores in the next few years as takes time for ABI to propagate. +
+Kito: Decision: should A.6+fence be the standard? LLVM already implemented A.6. Should we make them non-conformant? +
+Palmer: Was correct when written, so would be ABI break, which we can't do. +
+Kito: Proposal by Palmer last week. Two-bit scheme; one for A.6 compatibility, one for A.7 compatibility. A.6+fence sets both. Do we really need two bits there? +
+Philip: Feel like we're going to have more atomics ABIs, e.g. TSO. Having two bits feels restrictive. Could have more bits for an enum. Compatibility is left as exercise to user. +
+Kito: Not sure if TSO will be different. +
+Palmer: Discussion whether TSO should be compatible. In theory orthogonal, don't know if useful in practice. psABI currently says incompatible. +
+Philip: Experimental TSO lowering (definitely not frozen) was explicitly chosen to be compatible with A.6 (and thus incompatible with A.7). +
+Palmer: Everyone so far has said can link WMO code with TSO code and just have inefficient codegen. +
+Jess: May just be to say can't run TSO on WMO, not sure, would need to check history. +
+Palmer: Already have a TSO flag. Should sort out TSO-WMO compatibility issue at some point. +
+Philip: Could just regard TSO bit as part of the atomics ABI field. +
+Palmer: Don't think can answer without better understanding of A.6+fence. +
+Jess: That's not saying you don't encode A.6+fence, that's saying you don't want A.6+fence at all? +
+Palmer: Some may want to remain on A.6 because A.6+fence performs poorly on their hardware, so need to support it. +
+Jess: Distributions won't like not having A.6+fence for transition +
+Palmer: Are there any distributions shipping LLVM binaries? +
+Jess: FreeBSD. Need to be able to upgrade, so need a major release with A.6+fence that is known compatible with both A.6 and A.7 so, which means need three states. GCC situation for other distros is sad, but can't do much about that, just need to rebuild world like any other miscompile bug. +
+Philip: Is there anyone arguing for the one-bit scheme? +
+Patrick: Was just proposing as an alternative. +
+Philip: Any idea of how precious these bits are? +
+Jess: Depends where you put them. +
+Philip: Would argue for four states: unknown, A.6, A.6+fence and A.7. Not compatible, but actually are implemented as those mappings. +
+Kito: New instructions in A.7 are not ratified. +
+Hans: Not sure if I should include the table given it refers to non-existence instructions. +
+Palmer: Can we decouple the instructions from the orderings? +
+Hans: That's what I've been wondering. There are some compatible variants that may want to allow. +
+Philip: If alternate compatibility table is shipped, want it to have a different encoding so we can detect it if we figure out not compatible. +
+Palmer: Weird to specify the exact instructions. +
+Jess: Disagree; on other architectures the ABI is what Peter Sewell's webpage has. +
+Philip: Really want the instructions. Hard to get right. +
+Hans: Do we want to leave options in the tables? +
+Palmer: Want to encode in the binary. +
+Hans: Many instructions added in the Arm space over time without ABI breaks, e.g. RCpc instructions, and moved from LR/SC to AMOs. +
+Philip: Can put A.7 in as non-normative, then if instructions/mapping change then can introduce a new table and new encoding. +
+Palmer: Should we have a table that is implementing A.7 with existing instructions? +
+Jess: Isn't A.6+fence that? Possibly can drop a fence on seq_cst AMOs.
+
+= ePIC
+
+Luis: Have proposal ready for review, though open to alternative designs. First step to decide if want overall design. Ideally then get early approximate consensus on relocation encodings, compiler flags, etc, to avoid churn. +
+Kito: Would be good if ePIC shared details with FDPIC in future. +
+Luis: FDPIC or compact code model? +
+Kito: Either. +
+Luis: This uses a subset of the relocations, though one has slightly different semantics. +
+Kito: This avoids using up relocation encoding space, which is one possible issue. +
+Palmer: Don't need a code model, just a few features you're using at the same time. Each independently useful. +
+Luis: Since last time we spoke, want to work on that in parallel. Other priorities got in the way of that earlier this year but should be able to more later this year. +
+Palmer: Believe it's unlikely in practice to implement this. Do you have patches? Ascribing behaviour to things by name, not something we like to do in general. +
+Luis: LLVM needs psABI stuff to be approved before giving patches proper review. +
+Palmer: Don't known LLVM specifically, but generally people will review RFCs at least somewhat. People won't review if you don't send it. Worry is this specification as defined isn't viable to implement. +
+Luis: When you say not viable, you mean patches won't be accepted, not they won't work? And when you say by name, you don't literally mean that? +
+Palmer: But it is by name? +
+Luis: Using attributes to determine which segment. +
+Palmer: But there's one new segment that can move? Worry is now there are cross-segment linking rules.
+
+= TLSDESC
+
+Tatsuyuki: TLSDESC has special resolver that doesn't require saving registers. Also clarified ABI to specify vector registers as callee-saved. Believe spec is ready for those who wish to implement. Working on prototyping GNU toolchain. Glibc mostly done, should be shared later this week. GCC still WIP, found it doesn't like referring to labels. Assembler not started, nor linker optimisation. +
+Jess: One comment, didn't get a chance to leave before meeting. Already have syntax inline for adding TP for one or both of IE and LE, .tlsdesc_call should be the same. Also makes it less dangerous in presence of relaxation; avoids issue with nops being inserted between directive and instruction. +
+Kito: Do we need ELF bit? +
+Several people: No, other architectures don't. Both models compatible, just another dynamic relocation to handle in run-time linker. +
+Elliot: Working on LLVM patches. +
+Jess: With a libc, e.g. bionic, or using glibc? +
+Elliot: No, just toolchain.
+
+= RV64 ILP32
+
+Shihua: PLCT/T-HEAD working on RV64 ILP32 for GCC, binutils, glibc, LLVM, Linux and QEMU. Calling convention discussion on hold until have benchmark data. One question, how to distinguish RV64 ILP32 from RV64 LP64 and RV32 ILP32? Could have e_flag or new e_machine value. New machine would add complexity, differs from EM_RISCV and may cause confusion. +
+Jess: X32 and N32 are architecture-specific names (X for X86, N for New, as opposed to O32 Old ABI on MIPS) so shouldn't be used, but other names fine. Do people have opinions on flag vs machine? +
+Kito: Meant as an option to consider, but believe flag is right thing to use now. +
+Jess: Just wanted to make sure other options were considered. Didn't mean we can't use a flag, but they are scarce, so should be sure it's the right thing, not just used because that's what the proposal says.
+
+= Vector ABI: Size and Alignment
+
+Kito: Can align to either 128 bits or the element's alignment. For 128 bits, fractional LMUL values waste lots of stack space, and Zve32/Zve64 would waste 96/64 bits, so using lower alignment conserves space. Compilers can still overalign for performance. +
+Guo: Why do we need a new ABI? +
+Kito: Not a new calling convention, just standardising known alignment for vectors.
