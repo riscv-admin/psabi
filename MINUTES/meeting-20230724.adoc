@@ -1,0 +1,72 @@
+= psABI meeting 24th July 2023
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Luis Marques, Petr Hosek, Craig Topper, Elliot Hughes, Hans Boehm, Jiawei, Keeran Rothenfusser, Lehua Ding, Philip Reames, Shihua, Simon Cook, Tatsuyuki Ishi
+
+= Status Update
+
+Kito: Various new PRs.
+
+= Atomics
+
+Kito: Initial spec merged. TSO mapping proposed by Patrick (Rivos). Dropped spec for soft atomics (non-A cores) for now until agreed on standard mapping; LLVM has 2, GCC has 1, all different.
+
+= ePIC
+
+Luis: Not much changed since last time. Command-line options out of scope for psABI but of interest. For rewriting rules, looking for opinions on how best to specify. For %epic_base_add / %epic_lo question of whether to indirect like %pcrel_lo or not. Linker relaxations are specified but differ from compact / large code model proposals. +
+Kito: Current PR adds a standalone document. Can you make a version that extends the current document instead? +
+Luis: Done that way to add context, but can extend the existing document instead. +
+Kito: Could put context as appendix.
+
+= TLSDESC
+
+Tatsuyuki: Spec almost considered finished. Not had enough time to make much progress on prototype. Have relaxation prototype almost working with mold. LLVM prototype from Google, but no LLD prototype. Should have plan in August to finish GNU toolchain prototype. Plan to finish prototype first, but could merge spec early. +
+Kito: Current policy requires GNU or LLVM prototype before merging. MaskRay was interested in TLSDESC, could ask if he wants to help out for LLD. Does Google have a timeline? +
+Elliot: Definitely interested in. If there's a bug open please point me at it. +
+Petr: Paul looking into LLD right now. Planning to sit down with MaskRay to figure out what exactly is needed. Hope to make progress in the next couple of weeks.
+
+= 64ILP32 - ILP32 on RV64
+
+Shihua: Have RV64 ILP32 prototype on Linux kernel. Saw +8.4% for CoreMark on D1. +
+Kito: Have you tried SPEC 2006? Remember x86 ILP32 showing significant performance improvement there. +
+Guo: Not yet. +
+Jess: Why are you seeing those results for CoreMark? It's designed to reserve 64 bits of space for pointers so you can compare 32-bit and 64-bit cores directly. +
+Craig: Loop indices are unsigned 32-bit integers so full of zero-extends for RISC-V. +
+Jess: Right, so the number is misleading, it's not measuring what you think it means. Need to be very careful quoting it.
+
+Guo: Working on getting more benchmarks working to see what the performance is. Next time may have more to share. Traditional ILP32 keep registers 64-bit, but want to make them 32-bit to reduce stack usage. Also want Sv32 on RV64 to reduce page table size. +
+Jess: At that point you should just use RV32. It's crazy to add an extension that allows you to treat RV64 as RV32. That extension exists, and is called RV32. Don't hugely like the idea of treating the registers as 32-bit, either, will then have multiple ILP32 on RV64 ABIs and that doesn't sound good, but can at least see the argument.
+
+= Vector Calling Convention
+
+Lehua: Current proposal has v0 and v8-v23 for argument / return value registers, v1-7 and v24-v31 as callee-saved registers. For calling convention need callee-saved registers to be preserved across calls, and functions need to be annotated with .variant_cc. Have GCC and Clang/LLVM PoCs. Need review, and to show that callee-saved registers have use. +
+Lehua: Vector argument registers allocated in a first fit manner; means later arguments can use earlier registers to fill in gaps left behind. +
+Philip: Two points. First one procedural. Split across two PRs that build on each other; would help to consolidate them. Think I've also seen a third? Hard to track the exact status and set of changes proposed. Second one technical. The .variant_cc mechanism has a problematic side-effect: with a binary defaulting to this calling convention, all functions being tagged .variant_cc lose the ability to do lazy binding. +
+Jess: Could say in that scenario that any functions not taking/returning vectors don't save registers, but then affects vectorisation. +
+Philip: Problematic bit is the callee-saved registers, which makes every function participate. +
+Jess: Think it's reasonable to have a separate way to mark binaries that have vector as the default. After all, if it's the default, vector is no longer a variant convention, it is the convention. Both cases are important to handle but very different in nature. +
+Philip: Three points. One solution is to not have callee-saved registers. For RV64GCV hardware would be odd for the default calling convention not be the vector one. +
+Jess: Having said that, would mean -march=rv64gcv isn't ABI-compatible with -march=rv64gc by default, which could mean incompatible with system libraries. Not without precedent though, floating-point does that, just not noticed given distros compile with floating-point. +
+Philip: Some believe shouldn't do callee-saved, but seems like of course they're worthwhile, and would be odd not to have.
+
+Philip: If you call a function with a vector that's not explicitly tagged with the vector calling convention (and it's not the default), do we make that use a vector calling convention or not? Highly confusing to the user if that's the case. Better to say the default calling convention has the following semantics when a vector is passed, with the vector calling convention adding all the callee-saved registers. +
+Jess: Gets a bit confusing with .variant_cc given it's not really a variant, would have to carefully phrase the spec. +
+Philip: If we're extending the default with vector arguments and returns, matches the current proposal, but makes the question of callee-saves, and thus lazy-binding, a broader concern. May have the default have all the argument and return rules. +
+Kito: Won't this break ABI for existing code with vector arguments and returns? +
+Philip: What we're calling vector calling convention is not a new convention, it's an extension to the default one. Then when there are vector arguments or returns we set .variant_cc. Under the assumption there are no callee-saved registers, we're done. Then the question of whether we add callee-saved registers. In that world, all functions become .variant_cc. Other idea I've thrown out is to have an alternate calling convention which is the default convention (no callee-saveds) except that it adds callee-saveds. This would avoid universal eager binding at the cost of only getting the benefit of callee-saved where the user explicitly annotated. +
+Jess: What about my proposal earlier, where you only have callee-saved registers when taking arguments or returning values? +
+Philip: Agree it works, concern is whether you get enough of the benefit of callee-saveds. Intuition is it doesn't give us enough of the benefit. +
+Jess: One possible outcome is it's the worst of both worlds; vector code has to restrict register allocation for saving, and non-vector code can't take advantage of the callee-saveds. +
+Philip: Maybe can split the proposal into two pieces: part that doesn't do callee-saveds, and a second one that explores the benefit of an alternative convention with callee-saveds and how to make it work well. May be adding complexity, but want to see if we can separate the two procedurally and let the first part move forward.
+
+= R_RISCV_RELAX Issue
+
+Kito: Issue when using different ISAs; see GitHub.
+
+= Vector ABI: Size and Alignment
+
+Kito: Proposal to add vector tuple type and vector type for f16 and bf16. Positive feedback from both toolchain communities. Will defer to after calling convention discussion.
+
+= Large Code Model
+
+Kito: Andes have proposed large code model. Uses constant pool like AArch64. +
+Jess: AArch64 can also use bit insertion instructions to synthesize the address, which I believe GCC and LLVM use by default. Worth discussing this in the context of PIC, especially whether this is large data or large code (latter is much harder for PIC).
