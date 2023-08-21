@@ -1,0 +1,57 @@
+= psABI meeting 21st August 2023
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Anders Berg, Ali Zhang, Anton Sidorenko, Cay Blomqvist, Elliot Hughes, Hans Boehm, IIsaac Chute, Joshua, Luis Marques, Petr Hosek, Philip Reames, Sami Tolvanen, Simon Cook, Tatsuyuki Ishi, Victor Lu
+
+= Atomics
+
+Kito: TSO mapping has been merged. Have atomic ABI tag PR with binutils PoC. Intend to merge.
+
+= TLSDESC
+
+Tatsuyuki: PoC for GNU toolchain sent for review, v2 needed with unit tests. 2 vs 4 GOT slots under discussion. Rui and MaskRay in favour of 2 slots.
+
+= Vector calling convention
+
+Kito: PoC implementations for both Clang/LLVM and GCC available. Evaluating with both implementations
+
+= CFI-related issues
+
+Kito: CFI close to frozen. Will need to care about ABI issues for it. Need binary tag and custom PLTs, and jmp_buf has potential issues for shadow stack.
+
+= Binary tag for CFI
+
+Kito: Need tag to enable landing pad or shadow stack if all objects have CFI supported. Three candidates: bit in e_flags, ELF attributes or ELF GNU property. e_flags fast but limited resource. ELF attribute already used for various information but not currently from dynamic linker. ELF GNU property used by aarch64 and x86.
+
+= Attribute vs property
+
+Kito: ELF attributes section not marked as allocated. ELF GNU property type extendable in theory, only integers now though. Already allocated, already implemented for in glibc's dynamic linker and used in aarch64 and x86. +
+Elliot: Similar argument as TLSDESC, probably best to just go with what's already there for other architectures. Believe at least one of the BSDs already has it. +
+Jess: It's either there or will soon be there for at least aarch64, if not x86 too.
+
+= Custom PLT for CFI
+
+Kito: Currently under discussion, two proposals: take two PLT slots or have two entry points.
+
+= jmp_buf ABI
+
+Kito: CFI spec suggests we need to save shadow stack pointer in jmp_buf but could be ABI breakage. +
+Jess: State is we believe no setjmp/longjmp implementation that needs to care about ABI breakage is affected in reality, all have space.
+
+= ePIC
+
+Luis: Starting by adding GP-relative relocations. LGTM from binutils, waiting for LLD. Will add GPREL_ADD relocation like TPREL_ADD for relaxation.
+
+= Tag_RISCV_x3_reg_usage
+
+Kito: Have PoC for binutils. PR ready to merge if no objections. Will wait until end of week.
+
+= Open Discussion
+
+Jess: At start of year had slide with important items to resolve this year. Where are we with those? +
+Kito: Vector ABI (SiFive) first on list, disussed earlier. ABI versioning/breakage (VRULL) not done. Alignment relocation not done (VRULL). eABI and runtime library ABI (IAR) on hold; hope for initial suggestion next meeting. ePIC (lowRISC) in progress, discussed earlier. Atomic ABI almost wrapped up. +
+Jess: Going back to previous minutes, had TLSDESC which is almost wrapped up, and red zone. Philip, you expressed interest in that, is that still the case? +
+Philip: Still believe it's a good idea, but don't feel strongly enough to push it forwards at this time. +
+Luis: Any downside to it? +
+Jess: Can't run new binaries on old kernels, but likely not a big deal.
+
+Kito: One more thing I remembered: CFI will need to specify a labeling scheme as part of the psABI.
