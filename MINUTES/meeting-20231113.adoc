@@ -1,0 +1,39 @@
+= psABI meeting 13th November 2023
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Craig Blackmore, Elliot Hughes, Jiawei, JojoR, Luis Marques, Petr Hosek, Victor Lu, Cay Blomqvist, Christoph Muellner
+
+= Large code model
+
+Kito: PR 388 proposes a large code model. Three options proposed during discussion: literal pool scheme, long instruction scheme and TOC pointer scheme (c.f. PowerPC, like a per-function GOT). Please join discussion on PR if interested.
+
+= Relax GOT indirection into PC-relative addressing
+
+Kito: Optimises GOT entry loads into PC-relative, or even absolute, addressing. Question whether you need R_RISCV_RELAX for these; could just allow anyway and replace with NOPs where needed like other architectures, e.g. AArch64. +
+Jess: Some subtle cases where it can cause changed behaviour. FreeBSD's kernel does some gross things that rely on GOT indirection, have to turn off relaxation for AArch64 in LLD as a result until we have better design. Could also see changed behaviour for early boot code when PC is physical or GOT not yet relocated. But both are constrained environments where it's fine to need extra care. Also worth having the PC-relative and absolute optimisations just be specified as a single step, then shortening the sequences can use existing relaxations. Otherwise have to repeat it all in spec for GOT relaxation. +
+Kito: Also case where weak symbols get optimised to not use a GOT entry and so not work with e.g. LD_PRELOAD? +
+Jess: Believe that cases where linker would do so are correct to do, but maybe could cause different observed behaviour.
+
+= ePIC
+
+Luis: PR 405 adds some relocations and rewrite rules, split off and revised from initial proposal. Started using in more complex projects, didn't show any new issues, believe it's time for psABI community to review proposal.
+
+= Vector calling convention
+
+Kito: Most controversial part in the past has been how to pick callee and caller saved registers. Ran experiments with different conventions. 50:50 split gives good performance for small LMUL but worse for large LMUL (in particular for 8), but small LMUL is more common in practice so believe the right choice to use. Had discussion with Andrew Waterman, seems happy with the design. Also similar to X86 and AArch64. +
+Jess: Presumably LMUL=1 is the most common by far? +
+Kito: LMUL=1 and LMUL=2 used in LLVM, show up in benchmarks. LMUL=4 get used in some loops. Only some programs can use LMUL=8, means you only have 4 registers, can quickly run into spilling. Compiling our own internal library functions we see high register pressure with LMUL=4 and LMUL=8, too. LLVM defaults to LMUL=2 for loop vectorisation, GCC defaults to 1.
+
+Kito: Proposal is to use vector calling convention if and only if function takes an argument of vector type. Intuition is such functions uses in loops that themselves use vectors, and don't want to keep spilling around function calls in such loops.
+
+= Passing/returning fixed-length vectors
+
+Kito: Didn't previously specify this, currently GCC and LLVM are incompatible, though do use the samae {Cpp} name mangling. GCC treats fixed-length vectors as arrays, so always passed by indirectly, whilst LLVM treats them as structs, and so vectors up to 2 * XLEN passed in registers rather than indirectly. Proposal is to follow GCC's scheme, since packing into and unpacking from V registers generates quite a lot of code. +
+Jess: Is this regarded as stable ABI currently by either compiler? Know some of the vector ABI details was regarded as not stable by LLVM, but not if this counts.
+
+Kito: Minimal VLEN is 32 bits, need ABI to be compatible with all conventions. Would mean 128-bit fixed-length vectors would have to be passed using LMUL=4, but inefficient when VLEN is bigger. Likely need attribute and/or command-line argument to configure ABI. +
+Jess: Does V itself specify a bigger VLEN? +
+Kito: V requires 128-bit, Zve* exist for smaller VLEN. +
+Jess: Should probably specify for VLEN=128 then and allow it to be configured for embedded situations. Configurability for Unix-class environments doesn't make sense, want compatibility not fragmentation. But obviously need to support for embedded cases. +
+Kito: May still want option to provide optimised functions for larger VLEN.
+
+= Open Discussion
