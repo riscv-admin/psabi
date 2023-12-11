@@ -1,0 +1,68 @@
+= psABI meeting 11th December 2023
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Christoph Muellner, Anton Sidorenko, Elliot Hughes, Isaac Chute, JojoR, Luis Marques, Ptr Hosek, Philip Reames, Richard Jones, Simon Cook
+
+= #397 Relax GOT indirection into PC-relative addressing
+
+Merged
+
+= #402 Define GOT-Relative data relocation
+
+Merged
+
+= #408 Clarify that multiple R_RISCV_LO12_I/R_RISCV_LO12_S can share one single R_RISCV_HI20
+
+Merged
+
+= #406 Argument passing/returning value for fixed-length vector
+
+Closed
+
+(Minutes started here at 15:15 UTC)
+
+= #409 ELF attribute for profiles
+
+Kito: Christoph, could you give some description about this? +
+Christoph: Profiles exist and are ratified. Question is should we support more on the toolchain side. Proposal here would be to record profile used by specific binary. +
+Richard: Sent this to various people at Red Hat. Not opposed, but been done in other architectures and got it wrong in various ways. As written probbably not very useful. Could make a huge effort to get it right, could copy something, could accept it's informational but not hugely useful. +
+Elliot: On the Android side, struggling to see what I'd do with it in the loader. For other architectures, only really useful for things like file(1). In theory it's a good idea, but not sure how useful profile really is in reality. +
+Kito: Worth noting already have architecture encoded in the ELF. +
+Philip: Don't really see the point given we already have the arch string, and already know its problems. What value does having profile separate from arch string give? If it's a top-level attribute, doesn't it have all the same problems, and why replicate that mistake? +
+Christoph: If the arch string doesn't work, why do we still write something there? +
+Philip: Problem is, if you have files with two different arch strings, what ends up in the result? Different parties disagree on what should end up there? Also, when you move below object file scope, no way to describe those regions in the object file, so final ELF doesn't include extensions for those. What happens if you link profile A with profile B? +
+Christoph: Linker would warn but give an empty result. +
+Philip: Empty is reasonable, but warning isn't useful. +
+Richard: Almost always would end up empty, likely to find at least one object somewhere that differs. +
+Jess: Intend was to allow run-time detection that you're running a binary that wants an extension on hardware that doesn't support it, since quite likely with RISC-V's extensions, and encoding may even need different things. But no way for user to express policy, and file format not expressive enough. +
+Philip: Need to come up with specific use case fully thought through to make sure this does end up being useful, though not the end of the world if it goes in. +
+Jess: What's the actual point? Just a name for ISA extensions, and if we keep throwing the information away then not even giving information. +
+Philip: As Devil's advocate, profiles do sometimes also specify behaviour that's not an extension. May end up needing the profile to keep that information around. But should push back on that becoming necessary. +
+Jess: Agree, in that case we should just have an extension, and can define our own in the toolchain community if necessary. +
+Philip: Yes, can do our own X extension. +
+Richard: Have annocheck on the Red Hat side. +
+Philip: Should look at that. If there's things in finding then useful to know of that kind of use case.
+
+= #413 Remove restrictions on ULEB128
+
+Kito: Proposal to remove limitation that only exists for ULEB128. Read/omment if interested.
+
+= ePIC
+
+Kito: Current discussion on how to determine relocation. Currently done by writable/non-writable, but means rodata must be with text. Suggesting to use another mechanism. +
+Luis: Unsure if this is actually an issue for embedded systems. Could also put rodata in writable output section if needed. +
+Jess: Haven't thought through syntax or implementation, but could you use linker scripts' memory regions syntax to distinguish between PC and GP cases? +
+Luis: Maybe, though not sure how important this is.
+
+= Vector calling convention]
+
+Kito: Supported by Andrew Aterman, Roger Ferrer, Christoph Muellner and Jeff Law. Need to clarify what happens when out of vector argument registers. Questions about glibc resolvers and setjmp/longjmp. Plan to move forward after addressing.
+
+= Large code model
+
+Kito: Three proposals mentioned, constant pool, long instruction sequence and TOC pointer. Various advantages and disadvantages. TOC scheme not preferred since incompatible, need fixed register. OoO core faster for long instruction sequence, not true for low end core. Perhaps should have both. +
+Jess: Think Andrew's comments need some citation, performance not that clear. Many arithmetic instructions may take longer than something hitting in a big cache. TOC can be made compatible, but performance is poor. More importantly, deviating from normal GOT is painful for toolchains, so would rather not see that happen. +
+Philip: Going against my advice here, adding complexity without justification. What about sequence that doesn't use a temporary register? +
+Jess: Takes an extra 2 instructions I think, but sequential, and gets weird for PC-relative addressing, since shifting result of AUIPC.
+
+Kito: MaskRay has also proposed making range extension thunks mandatory to allow more than 2G of code. +
+Jess: How are you supposed to do that when we don't have an equivalent of Arm's IP0/IP1 registers that we can use? Should ask MaskRay what his idea is, would be unusual to propose without having thought that through so likely something I'm missing.
