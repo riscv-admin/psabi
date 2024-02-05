@@ -1,0 +1,69 @@
+= psABI meeting 5th Feb 2024
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Anton Sidorenko, Luis Marques, Mael Cravero, Richard Jones, Simon Cook, Christoph Muellner
+
+= #421 Relaxable TLSDESC only requires that R_RISCV_TLSDESC_HI20 to be paired with R_RISCV_RELAX
+
+Kito: Proposed by MaskRay. All relocations other than first point at first one, so proposal is only need to mark the fist one as relaxable. Could also apply to PCREL_LO12_I/S. +
+Jess: Think it makes sense. Only stops you reusing a high instruction between relaxable and non-relaxable low instructions, but no compiler generates that, and reasonable to have to avoid for assembly. +
+Kito: Can we go ahead and do this then? Do we need to bump the ABI version? +
+Jess: For TLSDESC should be early enough to be able to do it, believe neither toolchain has implementation yet. For PCREL believe both toolchains would break if you did it.
+
+= #405 Add ePIC relocations and rewrite rules
+
+Kito: Few review comments from MaskRay and Jessica +
+Luis: Not quite sure what you were referring to regarding GOT having longer instruction sequence. MaskRay was saying could relax that GOT sequence. +
+Kito: Still prefer you way of defining new relocation instead of using and relaxing GOT. +
+Jess: If GOT relaxation does what you want, why not use it? Just need an (optional?) 32-bit GP-relative relaxation, and maybe an option to error if GOT remains, though arguably you might want that as it works, just inefficiently.
+
+= #418 Standard fixed-length vector calling convention variant
+
+Kito: Varaint that allows passing fixed-length vectors in vector registers. Not enabled by default (would break ABI), uses function attribute. Built on top of existing vector calling convention. Adds concept of ABI_VLEN, may differ to actual VLEN. Default ABI_VLEN is 128. VLEN must be larger than ABI_VLEN. Each argument packed based on actual VLEN, padded based on ABI_VLEN. +
+Jess: Don't you need to have ABI_VLEN default to less than 128 for embedded case with only Zvl32b or Zvl64b? +
+Kito: Can change with pragma or option for that.
+
+= #388 Large code model
+
+Kito: Plan to merge constant pool scheme then introduce long instruction sequence later. Author not interested in the latter, may ask others to do so. Awaiting minor revision from them for the former.
+
+= #417 Add program property for CFI extension
+
+Kito: Current proposal to use .note.gnu.property like X86 and AArch64. Current proposal has one bit each for landing pad and shadow stack. Planning to split landing pad into two or more bits for different labelling schemes. Currently focusing on toolchain PoC, will update PR afterwards.
+
+= #414 Add a tag to indicate whether to work around binutils ADD/SUB bugs
+
+Kito: Two bugs. First is SUB had inverted sign for addend, but addend normally zero so not so serious. Second is ULEB128 SUB relocation, also interprets addend incorrectly, which is often non-zero. Encountered in the wild. Personally don't think we should add the tag. +
+Richard: Talked to some of the binutils developers about this, agreed tag wasn't very helpful. Would create long-term thing you'd have to maintain forever. +
+Jess: Hard to actually implement. Can't go back and add to the broken toolchains, otherwise would just fix the bug. So have to be tag you emit to say you aren't broken, that separate post-processing tool checks, which is a weird thing to have. And then penalises implementations like LLD which, as far as I know, aren't broken. So hard to see how you'd actually use the thing, let alone maintain it.
+
+= #413 Remove restrictions on ULEB128
+
+Kito: Aim to remove restriction that SET_ULEB128 must come right before SUB_ULEB128. No obvious benefit in my opinion.
+
+= #419 ABI for _BitInt
+
+Kito: Three options for laying out: put in MSBs with LSBs 0, put in LSBs with MSBs undefined, put in LSBs with MSBs sign/zero-extended. Propose following AArch64 and X86 and use the second option. However, we sign-extend to XLEN in our current ABI, so may want to do so here. +
+Jess: Sign-extending does let you match (or get close to) the ABI for existing power-of-two integer types. But annoying to do in the general case, have to shift up and down, so option two is more efficient, can just leave the carried-out bits in the undefined MSBs. So probably best to go with that.
+
+= #423 Add RELOCID for vendor-specific relocations
+
+Kito: Mael Cravero (Embecosm) proposed vendor-specific relocation mechanism. Current proposal is to use vendor ID in addend, with vendor IDs listed in psABI. Alternative would be to use JEDEC manufacturer ID. +
+Jess: JEDEC manufacturer ID is fine for commercial entity, but doesn't help research / open-source cases that don't have one. +
+Simon: Rationale not written down is that having the independent table lets manufacturers have multiple sets. Otherwise constrained to only one set of 64 relocations.
+
+= #422 Name mangling for standard vetor calling convention
+
+Kito: Itanium ABI already has some way to encode calling convention aspects. Proposal adds ABI tag, suggested to modify the Itanium {Cpp} mangling spec. +
+Jess: Question is why we need it but other architectures don't. We're not unusual in having multiple calling conventions.
+
+= Open Discussion
+
+Kito: One from me. Been a while since psABI 1.0 release. Thoughts on psABI release flow? Should we go through formal release flow, or do yearly/quarterly release? +
+Christoph: SBI spec, for example, already doing official RISC-V releases. Don't have planned way of adding new features, people propose features when we see a gap. Compared to ISA extensions, defined up-front. Going through ratification also adds overhead. Maybe every two years enough. +
+Kito: First point, prefer time-based releases. Second point, can we claim to be RISC-V standard if we don't keep seeking ratification? +
+Christoph: Should reach out to Atish, they have very similar problem. Should just follow how they handle that.
+
+Jess: Ages ago had a set of things for 2.0, where are we with that? +
+Kito: Have slide. +
+Jess: Have vector ABI, ePIC, atomics, vendor relocations merged or in-flight. Embedded things seem to have gone quiet, ABI breakage things hard. +
+Christoph: Should promote vector ABI more, big thing. Maybe promote in RISC-V newsletter?
