@@ -1,0 +1,61 @@
+= psABI meeting 25th Apr 2024
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Ana Pazos, Anton Sidorekno, Cay Blomqvist, Christoph Muellner, Craig Topper, Elliot Hughes, Luis Marques, Petr Hosek, Victor Lu
+
+= #425 Range extension thunks
+
+Kito: Proposed by Stefan. Want to allow linker to insert range extension thunks when displacement too large. Exists for 32-bit and 64-bit Arm. Main concern is may clobber register, and psABI lacks reserved register for this, so may break ABI. Arm has two registers reserved for linker to use for things like this. Questions are do we need a new relocation to opt into this and do we need a new tag to mention it? +
+Jess: Forget where exactly we got with this. External calls already via PLT, ok to clobber register there (though poorly documented). Internal calls the problem, currently can use whatever calling convention you like. For questions, not sure about the second. If tag from linker, not so useful, can just look at what the linker produced anyway. If from compiler, may help C etc case, but assembly not helped; people bad about adding tags (and can't just automatically add). +
+Ana: To clarify, this is also for GCC? +
+Kito: Yes.
+
+= #428 Add program property
+
+Kito: Split from #417. Is GNU property, like X86 and AArch64.
+
+= #429 FDPIC/ePIC draft specification and work plan
+
+Kito: Stefan wants to add FDPIC. Some regard ePIC as a special case of FDPIC. Not sure if there's a schedule. +
+Luis: Hoped it would be fleshed out more, wanted to dig into some of the details. Believe he was intendeding to implement a prototype, but don't think it has happened yet. Would be interested if others understand it or also find parts harder to parse like me. +
+Kito: MaskRay left some comments, believe he was going to implement FDPIC for other arches to inform himself further. Will email MaskRay to see if he's still interested. +
+Luis: Jessica, do you remember what exactly he was doing? +
+Jess: I believe he was both surveying the landscape across other arches and implementing for 32-bit Arm, but don't entirely recall. +
+Luis: Was confused about it saying gp points to GOT. In ePIC kept it more abstract, just some offset from the GOT. +
+Jess: ePIC is specialisation of FDPIC, so if FDPIC says it's the GOT then also true for ePIC. But don't think that requirement is necessary, just that you know how to get to the GOT from gp. So a bit arbitrary, could generalise FDPIC and thus ePIC.
+
+= #434 Add complex labeling scheme for landing pad
+
+Kito: Based on Itanium {Cpp} ABI with special rules for member functions. Won't go through all the details here. If interested, see PR. SiFive will implement, focus on GNU toolchain first. MediaTek may look at LLVM.
+
+= #417 Add program property for CFI extension
+
+Kito: Made a few changes. Dropped dynamic tag, not used, taken from AArch64 where it also turns out to not be used. Split #428 out. GNU toolchain prototype available, though minor difference currently in label value used.
+
+= #418 Standard fixed-length vector calling convention variant
+
+Kito: No update yet, but SiFive working on LLVM PoC.
+
+= #388 Large code model
+
+Kito: Updated, but stuck due to range extension thunks. Would like to move forward with current constant pool scheme, with optional range extension thunk support coming later.
+
+= #419 ABI for _BitInt
+
+Kito: No progress yet, need further evaluation but lack resources.
+
+= #423 Add RELOCID for vendor-specific relocations
+
+Kito: Embecosm proposed RELAX-like scheme. Since last meeting proposed using dummy symbol rather than addend value. Would like to merge soon, visit PR if you have comments.
+
+= psABI 2.0 release
+
+Kito: Would like to review and discuss what should be in 2.0 release. Target is end of this year, possibly early next year at the latest. Had list in the past, should review what's been done and what's still wanted/needed. Vector ABI, atomics ABI, TLSDESC, ULEB128 relocation and mapping symbols done. ABI versioning and alignment relocation (latter motivates former) not worked on, nor eABI/runtime library ABI and ilp32ei/lp64e ABIs. T-HEAD have proposed ilp32-on-RV64. +
+Kito: Since last time, have _BitInt, vendor relocation, fixed-length vector calling convention, CFI and FDPIC/ePIC. Current potential new items are CREL/RELLEB and RELR (standard things, former proposed, latter accepted, may just need some words in our spec about them). Any other items we should be considering? +
+Kito: Will propose charter for RVI with those items.
+
+= Open discussion
+
+Kito: Any other topics people want to raise? +
+
+Jess: If nothing technical, have boring administrative matter from the start. People went to the SIG meeting rather than the TG meeting Zoom. Should we remove the former from the calendar or use the same Zoom meeting for both? +
+Christoph: Already removed the SIG meeting calendar entries for psABI weeks.
