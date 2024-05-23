@@ -1,0 +1,62 @@
+= psABI meeting 23rd May 2024
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Ana Pazos, Elliott Hughes, Jiawei, JojoR, Kiva, Petr Hosek, SiHuaN, Simon Cook, Robert Chyla, Deepak, Craig Topper, Paul Kirth
+
+= #440 Add RELR support
+
+Kito: Compact format for R_RISCV_RELATIVE, saves 16 bytes per relocation. Supported by glibc since 2.36. May need to mention that RISC-V supports more than one format within a binary, but each address should only be covered by one. +
+Jess: Not sure if we want to allow REL and RELA to coexist. Not aware of any loader/runtime linker that supports it, and not sure if it's hugely useful. +
+Kito: We do have more relocations, which have an addend of zero. +
+Jess: I guess we can leave it unrestricted in the psABI but that platforms can impose their own restrictions.
+
+= #439 Add CREL support
+
+Kito: LEB128-based format. More compact, and relocation numbers not restricted, so can go above 255 on RV32. Not finalised yet / not part of the ELF standard yet. +
+Jess: Can reiterate what I said on the issue. Seems interesting, adds complexity but has its benefits. Don't want to be adding it to the psABI whilst it's not standardised yet though. So should watch from the sidelines or participate in gABI discussions but nothing really to do within RISC-V yet.
+
+= #388 Large code model
+
+Kito: Updated, can allow range extension in future. GCC 14 has it implemented, LLVM has a patch. Will ask people to help move it forwards.
+
+= #423 Add RELOCID for vendor-specific relocations
+
+Kito: Minor revisions based on feedback, close to done.
+
+= #429 FDPIC/ePIC draft specification and work plan
+
+Kito: No update from Stefan. MaskRay working on arm32 and Super-H FDPIC at the moment. Can probably help provide PoC for RISC-V in future.
+
+= #434 Add complex labeling scheem for landing pad
+
+Kito: Currently encoding class name in signature string for class member function. Found issues implementing PoC for member function pointers as not one clear class to use. See issue for details.
+
+= #437 New ABI for stack layout and frame pointer scheme
+
+Kito: ABI has a specified frame layout. Zcmp push/pop has the order reversed. Means -fno-omit-frame-pointer has to avoid using push/pop. Can either change ABI or change the instruction. +
+Ana: Can also add a new instruction. +
+Robert: ABI was deemed most complicated in a recent summary. My opinion is it'll create a big problem. But you guys should be a voice in that conversation. +
+See slide 13 of https://docs.google.com/presentation/d/1Qk-pNJ5svY8trYW3Smk073ok9pcEJFc5hsx4rbOoj5M/edit#slide=id.p13 for details of this summary +
+Robert: Not sure linker can check everything, such as for run-time loader. Also profiling tools have their own unwinders. +
+Ana: Approached Rafael about sharing in the newsletter to get more opinions. +
+Robert: Far-reaching, discussed in small circle but now more public. +
+Ana: Yesterday in tech chairs, someone presented new load/store pair instructions, question as to whether it will conflict. x1 and x8 are not even/odd pair so load/store pair can't use them at the same time. Not familiar with load/store multiple. +
+Robert: As far as I understand, load/store multiple is for future consideration. Pushing/popping can be self-contained. +
+Kito: Curious, didn't attend tech chairs. What was the context? +
+Ana: Wasn't directly discussed, came up in the context of load/store pair. ABI change would include changing FP to point to the current return address. +
+Robert: Worked on debuggers previously. Some debuggers decode stack without DWARF. DWARF can also be incorrect. Changing FP can have a huge impact, especially if combining both in the same system. +
+Kito: Wasn't aware changing the CFA would be such an issue. +
+Ana: Other concern I have is embedded ABI diverging from Linux ABI. +
+Kito: Unclear what exact we're doing for embedded ABI, less in common across uses there. May end up doing something like arm32 with a bunch of small variations. +
+Ana: Jim Wilson said he was doing an embedded ABI with someone else but it died because nobody showed interest. +
+Jess: Have been a couple of attempts. Embedded ABI spec existed prior to psABI TG formation, was an outline and didn't progress. Talked about folding into psABI, eventually second attempt from IAR as instead being a set of optional variations. But never really got to anything concrete publicly. +
+Ana: Zcd and Zcmp conflict, and adding new ABIs will explode the number of combinations for multilibs. If anyone thinks we have something wrong on slide 13 please let us know. +
+Craig: Where do the saved floating-point registers go on the stack in the proposed new ABI? +
+Ana: Don't believe it's specified in the ABI. +
+Jess: Presumably they'd end up where it's currently labelled locals, with the marked saved registers area really being just integer registers. Normally saving RA and FP is the first thing you want to do, and with Zcmp you save instructions by saving integer registers at the same time. +
+Kito: Have a simple draft for how to mark the ABI with an ELF attribute. +
+Ana: Might be useful even today. +
+Jess: What use is it though? If it says it's not there, what are you going to do about it? Might as well try unwinding anyway in case this call stack happens to have some usable frame pointers, which many will. May give something useful even if not fully accurate, which is better than nothing.
+
+= Open discussion
+
+Ana: Just wanted to know what you had to do to make this document aligned with the RVI template. Can discuss another time.
