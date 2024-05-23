@@ -35,7 +35,7 @@ Kito: Currently encoding class name in signature string for class member functio
 Kito: ABI has a specified frame layout. Zcmp push/pop has the order reversed. Means -fno-omit-frame-pointer has to avoid using push/pop. Can either change ABI or change the instruction. +
 Ana: Can also add a new instruction. +
 Robert: ABI was deemed most complicated in a recent summary. My opinion is it'll create a big problem. But you guys should be a voice in that conversation. +
-See slide 13 of https://docs.google.com/presentation/d/1Qk-pNJ5svY8trYW3Smk073ok9pcEJFc5hsx4rbOoj5M/edit#slide=id.p13 for details of this summary +
+See slides 10, 11 and 13 of https://docs.google.com/presentation/d/1Qk-pNJ5svY8trYW3Smk073ok9pcEJFc5hsx4rbOoj5M/edit#slide=id.p13 for details behind this conversation +
 Robert: Not sure linker can check everything, such as for run-time loader. Also profiling tools have their own unwinders. +
 Ana: Approached Rafael about sharing in the newsletter to get more opinions. +
 Robert: Far-reaching, discussed in small circle but now more public. +
@@ -49,7 +49,7 @@ Ana: Other concern I have is embedded ABI diverging from Linux ABI. +
 Kito: Unclear what exact we're doing for embedded ABI, less in common across uses there. May end up doing something like arm32 with a bunch of small variations. +
 Ana: Jim Wilson said he was doing an embedded ABI with someone else but it died because nobody showed interest. +
 Jess: Have been a couple of attempts. Embedded ABI spec existed prior to psABI TG formation, was an outline and didn't progress. Talked about folding into psABI, eventually second attempt from IAR as instead being a set of optional variations. But never really got to anything concrete publicly. +
-Ana: Zcd and Zcmp conflict, and adding new ABIs will explode the number of combinations for multilibs. If anyone thinks we have something wrong on slide 13 please let us know. +
+Ana: Zcd and Zcmp conflict, and adding new ABIs will explode the number of combinations for multilibs. If anyone thinks we have something wrong on slides 10, 11 or 13 please let us know. +
 Craig: Where do the saved floating-point registers go on the stack in the proposed new ABI? +
 Ana: Don't believe it's specified in the ABI. +
 Jess: Presumably they'd end up where it's currently labelled locals, with the marked saved registers area really being just integer registers. Normally saving RA and FP is the first thing you want to do, and with Zcmp you save instructions by saving integer registers at the same time. +
