@@ -1,0 +1,46 @@
+= psABI meeting 18th July 2024
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Ana Pazos, Elliott Hughes, Jiawei, Petr Hosek, Simon Cook, Paul Kirth
+
+= Status update
+
+Kito: Three CFI-related PRs updated. Also AMOAS, strengthening atomics, RELOCID for vendor relocations and large code model.
+
+= CFI-related updates
+
+Kito: Removed generic rule for program property, added description just for program property. Renamed simple to unlabeled scheme. Function signature based scheme now stable. Have GNU+LLVM PoC for non-standard labeling scheme (fixed label of 1). +
+Jess: How confident are you that you've found all the {Cpp} corner cases, and that future versions of the standard won't introduce new ones that break the current scheme? Also, other architectures presumably have the same problems here, so has there been discussion with them? +
+Kito: One example, after {Cpp} 11, or 17?, added noexcept to signatures. Currently using whitelist to exclude new features. Another is class name in member function, but hard to make it work. For the second question, no. Other architectures don't have as many bits for labels. X86 just has landing pad instruction, no label. AArch64 has two bits, one for indirect jump target and another for target of indirect function call. Plan is to present what we have at the RISC-V Summit and get feedback. Also plan to go to RISC-V GNU Cauldron and seek feedback from other architecture maintainers. For function signature based know it's complicated, will wait to merge PR until can boot whole system and pass tests. +
+Jess: What about in LLVM, there's something using the actual string in software, is that relevant? +
+Kito: I guess you mean KCFI? +
+Jess: I think so? +
+Kito: Think it needs LTO, but only limited to kernel, and maybe not {Cpp}? +
+Jess: Believe it did {Cpp}, remember an issue on AArch64 I had to help untangle where va_list was mangled differently and the fix was backwards. +
+Elliott: Android does both KCFI and CFI, and is mostly {Cpp} in userspace.
+
+= #445 AMOCAS mappings for C11 memory model
+
+Kito: Proposed mapping from Zacas spec is not compatible with A6C/A6S mappings. Patrick has added notes to fill the gap. Note that issue doesn't affect current atomic code generation, only with Zacas. +
+Jiawei: What about Zabha? +
+Kito: Different extension, but not sure about this. +
+Jess: Is the question just if there are similar concerns? If so shouldn't be, same as already exists for word, not adding new kinds of atomics, just widths. Ignoring mixing atomic widths, of course, which is a whole separate can of worms for formal semantics.
+
+= #388 Large code model
+
+Kito: Last call for feedback, will merge this week otherwise.
+
+= #423 Add RELOCID for vendor-specific relocations
+
+Kito: Had some more feedback, but kind of stable, waiting to move vendor ID table to toolchain-conventions.
+
+= Release plan
+
+Kito: Wanted Christoph for this. Target for 2.0 release is end of this year, with whatever we have. Going forwards, maybe aim to have yearly release? Also, can we use the same charter as before, or do we need a new one?
+
+= Stack frame layout for __riscv_\{save,restore\}_N
+
+https://github.com/riscv-non-isa/riscv-toolchain-conventions/issues/35
+
+Kito: Currently don't specify the frame layout for the save/restore libcalls, though in practice for non-E ABIs the implementation is the same between GCC and LLVM, and considered stable. However, for E ABIs, not currently consistent, and needs to be known to emit the right unwind info in the caller. Need implementations and toolchains to agree, and need to specify it somewhere since there needs to be this agreement. Personally agree with Sam's comment for E.
+
+= Open discussion
