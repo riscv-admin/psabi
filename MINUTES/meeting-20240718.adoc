@@ -37,7 +37,7 @@ Kito: Had some more feedback, but kind of stable, waiting to move vendor ID tabl
 
 Kito: Wanted Christoph for this. Target for 2.0 release is end of this year, with whatever we have. Going forwards, maybe aim to have yearly release? Also, can we use the same charter as before, or do we need a new one?
 
-= Stack frame layout for __riscv_\{save,restore\}_N
+= Stack frame layout for \__riscv_\{save,restore}_N
 
 https://github.com/riscv-non-isa/riscv-toolchain-conventions/issues/35
 
