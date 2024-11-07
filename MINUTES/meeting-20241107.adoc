@@ -1,0 +1,70 @@
+= psABI meeting 7th November 2024
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Sam Elliott, Ana Pazos, Carl Perry, Craig Topper, Elliott Hughes, Liao Shihua, Ruinland Tsai, Paul Kirth, Guo Ren, Isaac Chute, Petr Hosek
+
+= Agenda
+
+Kito: Not a huge amount today. Update on CFI-related PRs. Discussion on RV64 ILP32 ABI, and an issue that's a combination of several topics (#453).
+
+= CFI-related PRs
+
+Kito: Program property and PLT for CFI extension (#417) now stable, have LLVM. Trying to introduce new relocation for landing pad and implement in LLD (#452). Used for linker relaxation to drop landing pad instruction or skip for specific call direct call. +
+Elliott: Talk about CFI at RISE, sent a link to Android CFI folk. They like forward edge because of the labels. Weren't sure why the virtual calls didn't use class hierarchy to limit the set more. +
+Kito: Want to apply scheme to whole system. Adding the class hierarchy requires LTO to do. +
+Elliott: Think they meant that you can't have the perfect approach without LTO but could do a bit better than nothing. Trying to encourage them to comment on the PR. +
+Kito: Not sure if we can do without LTO, especially when mixing compilers. +
+Elliott: Already doesn't work well on x86 and Arm. Their only other comment was stafe stack, but will leave that for when we talk about that. +
+Kito: You mean shadow stack? +
+Elliott: Yes. +
+Kito: Should be less controversial. +
+Elliott: Had problem with PAC/BTI where one dependency didn't enable it and so it got disabled. In Android want to have ELF note that gives an error if you can't enable safe stack. +
+Kito: Does Android already do that on x86 or Arm? +
+Elliott: x86 isn't commercially relevant to us so haven't look. Arm64 Guarded Control Stack isn't ready yet. +
+Jess: LLD at least has -z bti-report=error. Doesn't help you for dynamic linking but can at least pick up the case where you added an assembly file and forgot the annotation. +
+Sam: Can't you do BTI on a per-page basis, so each library can be separate? +
+Elliott: Yes, but still means your process isn't fully protected even if some libraries are. +
+Sam: Also can't do shadow stack on a per-library basis.
+
+= ILP32 on RV64
+
+Liao: Call it "New 32" or "rv64ilp32". Use EF_RISCV_N32 flag to mark. Sign-extend pointer types but limit address space to lower 2 GiB. +
+Kito: Why do we need the address space restriction if we're sign-extending pointers? +
+Liao: Sign-extending sets the high bits in the pointers otherwise. Zero-extending would require changes to the calling convention. 2 GiB seems big enough to us, and if you need more use LP64. +
+Jess: Zero-extending pointers isn't hard to achieve, assume this is just referring to integer scalar values being sign-extended in the calling convention today. Odd not to do it, limiting to 2 GiB means only applies to things like (void *)-1. Also, why not just use RV32? +
+Liao: Don't have RV32 hardware. +
+Jess: But you make your own hardware, right? So why not just do RV32? +
+Liao: Don't have RV32 application profiles. +
+Jess: Well, if that's the problem, the community can define them.
+
+Liao: Announced GNU toolchain in March, Linux kernel in April, open-sourced Nuttx and RT-Thread with support, and finished LLVM initial work in August. x86 and Arm focus on user mode, we're including privileged mode. Root cause is profiles are based on 64-bit hardware, so lot of chips with 64-bit ISA, but want 32-bit ABI for smaller memory footprint. +
+Ruinland: Slightly off-topic question. Do you require writable UXL? Is it true that you don't? +
+Guo: Writable UXL not really related. Found it hard to start new userspace ABI in Linux. This time focusing on privileged mode. Won't implement new userspace ABI. +
+Kito: You've emphasised privileged mode stuff. Does this mean userspace still uses LP64, but only kernel runs with ILP32? +
+Ruinland: Believe userspace run in pure RV32 mode. +
+Guo: In this solution change UXL to support 32-bit. But next would like kernel to support standard 64-bit userspace ABI. Believe could run properly on limited address space. That's Linux kernel plan. Here focus on psABI, and what the minimal modifications are. +
+Ruinland: ILP32 can't use floating-point instructions due to opcode reuse. +
+Kito: You're conflating ISA and ABI. RV32 and RV64 use different opcodes. This is about RV64 with ILP32. +
+Ruinland: Can take this offline. We found you couldn't mix ILP32 and LP64.
+
+Guo: See slides for links. Latest news is the various RTOSes supporting it, including AUTOSAR CP R19-11. +
+Kito: My takeaway there is just one market segment for it. RV64 can do cheaper 64-bit operations. +
+Jess: In the short term there may be RV64 chips you want to run on, but in the future if there's an ecosystem would you not have RV32 chips you can use? +
+Guo: Don't think in the long term there will be RV32 chips from vendors, don't have application profiles. +
+Ruinland: From Andes side, focusing on our 64-bit line but customers want 32-bit memory footprint, so promoting ILP32 in userspace. +
+Jess: In your case, is that RV32 by changing UXL or using RV64 with 32-bit pointers? +
+Ruinland: We're changing UXL. +
+Jess: And what about your kernel? If it were 32-bit would your customers want to use that?
+
+Kito: Has any RTOS accepted it into their mainline? +
+Guo: Nuttx and RT-Thread have.
+
+Kito: Will consider this, but may be an experimental ABI like ILP32E.
+
+= Relocations, ELF Markers and >32-bit Instructions
+
+Kito: Last topic (#453) from Sam. +
+Sam: Qualcomm have new set of extensions, can also talk to Ana about it. Various new instructions, some wider ones need relocations. In particular, 48-bit ones that need a wide field, e.g. load 32-bit immediate. Question is whether we can reuse existing relocations like R_RISCV_32. +
+Sam: Various things that came up. Some sub-extensions have 48-bit instructions. Effectively they require Zca because you need a 16-bit NOP for alignment handling. So will feed back to architects that it should be a dependency. Also highlighted issues around EF_RISCV_RVC where its meaning isn't clear after the introduction of the Zc* sub-extensions. +
+Sam: For relocations, we have a branch immediate laid out such that it has one PC-relative offset that's in the same place as 32-bit instruction so question of whether you can reuse that relocation. Believe from discussion we instead need a new relocation so you know you have a bigger instruction for relaxation. Also with big-endian can't reuse things like R_RISCV_32 because it's endian-dependent, but instruction stream isn't, so need to be clear about data vs instruction relocations. This should make it much clearer to handle correctly in the linker. +
+Sam: There's an existing discussion around R_RISCV_RELAX to be able to handle changes to the ISA, e.g. from .option norvc. Question about being able to reuse build attributes ISA string when you haven't locally changed the ISA rather than needing to include another copy. +
+Jess: Believe that should be true as a result of needing backwards compatibility, though need to be careful about input vs output build attribute in case files were build with different flags. Code may only be calling functions from another file when it's checked an extension exists and don't want to break that, so don't want to start using those instructions during relaxation outside the file.
