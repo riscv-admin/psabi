@@ -1,0 +1,40 @@
+= psABI meeting 16th January 2025
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Christoph Muellner, Ana Pazos, Craig Topper, Deepak, Elliott Hughes, Guo Ren, Hao Lin, Jiawei, Kyle Chan, Petr Hosek, Sam Elliott, Simon Cook, Paul Sherman
+
+= CFI status update
+
+Kito: #417 and #434 both stable, just #452 (introducing relocations) changed since last time. Added new relocation for landing pad, and new section for their values, so that linker can create PLT for external symbols. See PR for details. LLVM PoC ready, GNU PoC WIP. +
+Deepak: In a few words, what does this relocation enable? +
+Kito: Used for optimising landing pads. Had feedback on prior version that some functions didn't really need them, so want to remove during linker relaxation. Need relocation to mark landing pads so linker knows where they are and can skip using them under certain conditions. +
+Deepak: Any updates on complex landing pad scheme? +
+Kito: Stable, but for another meeting.
+
+= ILP32 on RV64 (#381)
+
+Kito: Renamed EF_RISCV_N32 to RV64ILP32. Removed limitation around addressing lower 2 GiB, now allow full 4 GiB, but implementations are of course free to impose their own limitations as usual. Does anyone have any objections to this becoming an experimental ABI? +
+Elliott: I guess just the usual question why anyone thinks this is going to succeed when it hasn't in other architectures? +
+Kito: I'm aware Arm have deprecated theirs. RISC-V is a bit different though. T-Head asking for it, SiFive considering it, and I think Andes want it too. Personally happy to make it an experimental ABI first. But I expect Linux kernel side may not accept patches. Still maybe useful for RTOSes. +
+Jess: I share the same concerns. But so long as it's experimental it's not a huge burden. Toolchains and OSes can choose whether they want to support it or not. By making it experimental it can change in future if we realise it's wrong, and we can remove it if it turns out not to be used.
+
+= Relocations, ELF markers and >32-bit instructions (#453)
+
+Sam: Was implementing R_RISCV_VENDOR, but ABI leaves some questions for the symbol (undefined global? arbitrary local?). Thought it should be a local symbol, but not clear where to point it. Unlike mapping symbols doesn't have a specific place. Also awkward in LLVM to emit multiple relocations for a single fixup. Also while a vendor may use a name for their vendor symbol someone could come along and define a function with that name. +
+Kito: Inclined to define as local symbol. But need to look more carefully at the details. +
+Sam: Being like a mapping symbol feels to me like the best solution, but awkward on the LLVM side. May have a solution that works. May be easier to get the changes through if the psABI defines this more. On the linker side probably want to keep similar to global pointer symbol.
+
+= Disallow VTYPE=VILL (#454)
+
+Kito: Whole register move needs valid VTYPE, but wording was not so clear in the spec. Implementations didn't enforce, and compilers didn't take it into account. LLVM and GCC now have a solution, will wait another month to be sure that it's stable. +
+Philip: I agree that we're going with the compiler changes here and not changing the psABI. When closing the issue, want to make it clear that we may revisit in future if needed. That is, it's a deferral of the issue, not a rejection. +
+Jess: To clarify, that's a concern with performance, not correctness? +
+Philip: Primarily, yes. May be correctness concerns, but less likely. Initial observations suggest performance concerns not as bad as feared, but if future workloads come along where it does matter we may revisit it. +
+Craig: If we see performance issues, likely to be on code with vector function arguments, which we haven't tested much of; will see whole register moves there. +
+Philip: As we move through release cycles may also see issues crop up. Think it's not so likely at this point, just want to be clear when we close it.
+
+Paul: For now, can vector VTYPE be made a compiler option or directive, with appropriate choice of default? +
+Kito: Currently no.
+
+= OpenMP name mangling for vection functions (#455)
+
+Kito: Looks in good shape, similar to SVE. Will wait a few more weeks for implementation. Would also like some more examples.
