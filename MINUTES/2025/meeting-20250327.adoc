@@ -1,0 +1,30 @@
+= psABI meeting 27th March 2025
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Christoph Muellner, Ana Pazos, Carl Perry, Chao-ying Fu, Connor Horman, Craig Topper, Isaac Chute, Mark Zhuang, Paul Kirth, Petr Penzin, Philip Reames, Sam Elliott, Victor Lu, Liao Shihua, ChuanTzu Tsai
+
+= CFI Related PRs
+
+Kito: Three items. Mostly about first one (#417 Add program property and PLT for CFI extension), stable, PoC ready, implemented in both toolchains. Looking for review. Other two (#434, #452) don't have much to update on, dependent on the first.
+
+= #458 Rework Nonstandard Relocations
+
+Sam: Talked on the call about this before. Clarifying language around non-standard relocations. #458 landed this week, follow-up PR now opened (#461) for paired relocations like ADD/SUB.
+
+= #455 Specify the Name Mangling Rule for Vector Function Decorated with OpenMP
+
+Kito: Have realised it doesn't specify how to mangle different element width.
+
+= #418 Standard Fixed-length Vector Calling Convention Variant
+
+Kito: Implemented in LLVM, still not in GCC. Would like to see approved, and maybe implemented in GCC. Maybe we should merge it as experimental first and then stabilise it later? +
+Christoph: Do you know if anyone is working on the GCC implementation? +
+Kito: Yes, but they didn't have time during GCC 15 timeline. Planned for GCC 16.
+
+= Open Discussion
+
+Connor: Would like to ask about specifing primitive type size and alignment, as I believe that's not covered? +
+Kito: I think it is, Table 5 for ILP32 in riscv-cc.adoc for example.
+
+= psABI 2.0 Proposal
+
+Kito: Goal is everything added since 1.0 but also CFI, fixed-length vector calling convention and C23-related additions. Also ongoing discussinos about ABI versioning/breakage, alignment relocation, big-endian support and runtime library ABI; if you are interested in those topics, please reach out to us.
