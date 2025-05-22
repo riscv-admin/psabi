@@ -1,0 +1,54 @@
+= psABI meeting 22nd May 2025
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Christoph Muellner, Ana Pazos, Chao-ying Fu, Deepak Gupta, Jiawei, Kai Cheng, Liao Shihua, Paul Kirth, Philip Reames, Rafael Sene, Simon Cook, Rich Fuhler, Petr Hosek
+
+= TG Reformation
+
+Ana: Public review came to an end, no feedback. Next step is TSC, preliminary OK, now 2 weeks to finalise voting. +
+Rafael: After that, board of directors approval. Only done one so far, during meeting. Pushing for online voting to speed it up. After that, move forward with TG. Acting chair puts out call for participation, then formal call for candidates. Then charter, which TSC then approves.
+
+= Status update for CFI related PRs
+
+Kito: Spent a lot of time on this lately. #417 for program property and PLT ready to go, part of implementation ni LLVM and GNU toolchain already. Pinging stakeholders from the community, including Rui, mold linker developer. Want to land soon. +
+Kito: For #434 function signature landing pad, implementation there for LLVM, not yet for GNU, SiFive colleague working on it. Hope to have initial version next month. +
+Kito: For #452 new landing pad relocation, working on it, have LLVM implementation. +
+Kito: Intend to finish these last two in Q3. Any questions on CFI?
+
+= #419 ABI for _BitInt
+
+Kito: ABI for part of C23. Prepeared a PR in the past but haven't done enough research. Asked SiFive colleague to help. Plan to experiment across the three different design choices to see what is the best for RISC-V. Want to finish this year for psABI 2.0.
+
+= #429 FDPIC/ePIC draft specification and work plan
+
+Kito: Andes mentioned in last SIG meeting they were interested, so put in agenda. Not seen any status update, and no Andes people in call. +
+Ana: Don't see the person who raised it in the meeting. Said he would meet out to you? +
+Kito: Saw him in the past few days. Have had private chat, only really interested in the ePIC part, FDPIC more complicated. Believe they've not yet reached a final decision internally though. Know several people in the community are interested.
+
+Kito: See Rich just joined. Rich? +
+(no response) +
+Kito: Will reach out to Andes after meeting.
+
+= #418 Standard Fixed-length Vector Calling Convention Variant
+
+Kito: Already landed on LLVM side, implementation part of merge requirements met. Looking for review/approval on both sides.
+
+= New PRs
+
+Kito: Two new PRs created recently. #463 Two reals are assigned FP registers in memory order is the first. Ada lets you specify the memory layout of structs, allows you to change the order of fields in memory compared with the order they're defined. ABI's wording doesn't precisely describe that situation. +
+Kito: Second one is #464 Clarify passing empty unions and arrays of empty structs/unions, for corner case in C. LLVM and GCC have different behaviour currently. Need to spend more time to decide which is right and fix the other.
+
+= Open Discussion
+
+Ana: For LLDB, want to know if frame pointer is enabled or not. Embedded environment, no debug info. GDB seems to be able to backtrace fine, LLDB doesn't. Haven't looked at GDB to understand its heuristics. Jessica do you have any thoughts? No flag on something like Arm. +
+Jessica: Haven't seen such a flag in other architectures. MIPS had some complex heuristics in GDB to decode the instruction stream, haven't seen the same for RISC-V but could be there. Can have a look at what it's doing, worked with GDB before. Perhaps LLDB's just missing simple unwind support. +
+Kito: Single flag may not be very useful, library code or hand-written assembly may not use frame pointer. Would need to be per-symbol. Not sure that fits your situation, as an embedded system with no debug info.
+
+Petr: Been looking at execute-only binaries at Google. Armv8.0 had an architectural bug that meant it couldn't do it, fixed in Armv9.something. AArch64 ABI supports it. RISC-V supports it in the architecture, but not in the ABI. Thinking is to model it on the AArch64 ABI, but want to first raise it here. +
+Jessica: Is this the SHF_AARCH64_PURECODE flag? Is there anything else? +
+Petr: Yes, believe it's just that. +
+Jessica: Seen the LLVM patches go past, not looked into the details. Need to see whether we also need such a flag, or they had compatibility concerns we don't. For example, we don't have the special load literal assembly syntax that automatically inserts constants in the code stream. +
+Petr: Can open issue before we propose changes. +
+Jessica: Please do, can have conversation there between meetings, and get wider visibility of it being considered.
+
+Jiawei: https://github.com/riscv-collab/riscv-gnu-toolchain/issues/1673 (issue with trying to provide multilib lp64d for multiple -march= for Linux toolchains; both end up installed to the same lp64d path) +
+Kito: This is userspace ABI, not really in scope for psABI. For example, also don't specify name of dynamic linker. Up to platform to decide.
