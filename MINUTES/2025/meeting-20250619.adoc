@@ -1,0 +1,67 @@
+= psABI meeting 19th June 2025
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Ana Pazos, Craig Topper, Kai Cheng, Liao Shihua, Petr Hosek, Philip Reames, Rich Fuhler, Ruinland Tsai, Sam Elliott, Simon Cook, Yunxiang Jia, Heinrich Shuchardt, Rui Chen
+
+= Meeting minutes
+
+Last month's meeting minutes approved.
+
+= TG reforming process
+
+Ana: Waiting for board approval to move to next step, call for participation and election of chairs. Believe should be happening later this month.
+
+= Status update for CFI related PRs
+
+Kito: For most have sent out GNU toolchain patches. For program property and PLT, believe mostly done. For function signature landing scheme needs a bit more work. New relocations not yet done. +
+Kito: New issue about distro concerns around having multiple landing pad schemes. Will talk about later. +
+Heinrich: Can add properties to binaries to say which they have. But dlopen exists so cannot know everything that will be used at load time. Some software shared by distros, like Snaps and Flatpaks, so important that distros don't have different ABIs. If you go with one scheme, can't change later, since Snaps/Flatpaks must work on different versions of Ubuntu, so need to know which kind of landing pads to enable. +
+Kito: If we don't enable it in the next release, can it be enabled later? +
+Heinrich: Next LTS will be in 28. +
+Jessica: How much are snaps/flatpaks using host libraries? Don't they have their own runtimes? +
+Heinrich: Different kinds of snaps. +
+Jessica: But if you're using host libraries you must have built on a version at least that old, as you can't go backwards in time. Have to build against the oldest supported version, no? Only forwards compatible. +
+Heinrich: Can have compatibility issues with things like {Cpp} libraries. +
+
+Philip: Is there a document somewhere tracking the current status of the work? Finding it hard to keep on top of. Things like issues identified and fixed. x86 had a long tail for landing pads and shadow stacks that I'm aware of, and I need to get up to speed for RISC-V. +
+Kito: Currently nothing more detailed than the meeting notes. +
+Philip: Function signature labelling scheme adds a lot of complexity that the unlabelled scheme doesn't. x86 does the latter, and is what we know works. I suspect the former has a bunch of corner cases where it doesn't work. Are those written down somewhere? +
+Kito: Not currently written down. Found some in {Cpp}, and the odd one in C. +
+Philip: And assembly stubs, and varargs. Wnat to see not just whether they've been identified but also what solutions have been proposed. Important to be able to decide which scheme to move forwards with. +
+Jessica: Also forwards compatibility concerns with newer language versions. I believe there was a case where {Cpp} added additional compatibility that would have broken a labelling scheme designed for prior versions. +
+Kito: Sounds like I should spend some time writing a summary. +
+Philip: Useful for us on call, but also useful for people in distro and open-source communities we're asking to accept patches. Believe part of the problem getting patches in is a lack of confidence in the status of what's presented. +
+Jessica: Saw the same thing with LLVM for the currently open pull request that saw activity in the past month. Some implementation discussion but also the underlying ABI. +
+Philip: Three layers to the document. Forward CFI with landing pads, compared with x86; forward CFI with landing pads, with the issues posed by function labelling; and shadow stack.
+
+= ABI for _BitInt
+
+Kito: Running various experiments on how to specify the unused bits. Have some results but intending to run more. +
+Sam: Are these done against the base architecture? Some bit-related standard extensions exist but also non-standard extensions that can do bit manipulation, I think up to three different vendors now. Should this be taking into account that those kinds of extensions will likely end up being incorporated into some future standards? +
+Kito: Good point, should look at that. +
+Sam: Think it's worth including B, but also looking at vendor extensions.
+
+= Other items
+
+Kito: Updated #418 with suggestions, needs review. Accepted and merged #463 as not controversial and doesn't impact languages like C and {Cpp}, only special languages like Ada that have this special case. Haven't had time for #464 yet, don't know if anyone else has looked at it. +
+Kito: Next is #465, discussed last meeting. One idea I had is whether we could still use the format of .eh_frame but only include stack unwinding info. Would significantly reduce the size. +
+Ana: GCC doesn't support something like that, right? Do you know of any toolchain that does? +
+Kito: Would need to take the time to investigate it if we wanted to do it. But might be less effort, don't need a new format. Anyone else have ideas or comments? +
+Kito: Last item is execute-only memory. Paul has said Google will submit a draft. Posted various notes from my own surveying, MaskRay added more. Is there anything more from Google? (Paul not here this week)
+
+= Open Discussion
+
+Kito: Any other topics? +
+Jessica: Have one if nobody else does. For the CHERI TG we add new relocations. Currently using custom space, without even associated vendor relocation. Would people be open to us reserving a block of standard relocation encodings so we can start using them in the toolchain rather than need to change later? +
+Kito: How many would you need? +
+Jessica: Need to check, used to duplicate various standard ones but now using them directly. Maybe somewhere between 5 and 10. +
+Ana: Do you have a specification of these relocations? For the vendor policy we require that. Not vendor relocations in this case but should probably try to follow that where possible? +
+Jessica: Yes, though a bit stale, should update. +
+Kito: Please leave a gap for CFI relocations. +
+Jessica: Sure, just let me know how many I should leave. +
+Philip: This is something we've not done before, but think it's a good idea to do in general. Want to ensure we're clear that we're not guaranteeing anything about this; this is a voluntary action by the psABI community to agree not to use those relocations for another purpose, but can be retracted at any point, such as if CHERI is no longer making progress towards ratification, or if it is ratified but not all of the reserved encodings exist. For example, tools should not be assuming that those encodings are for CHERI. +
+Jessica: I can include that. CFI probably should do this too, given how long the function labelling scheme might end up dragging on. Don't want it to have to keep changing its relocation encodings. +
+Philip: I agree. +
+Ana: Can we write a policy down like we have for vendors? +
+Jessica: I can do that, possibly in the merge policy document. Don't want to be too prescriptive though, will vary depending on the nature of the extension what's appropriate. For example, those adding new instruction formats such as 48-bit encodings likely don't need much supporting documentation. So may want to say it's on a case-by-case basis reviewed by the psABI community. +
+Philip: Should include suggestions though of good things to have. +
+Jessica: Yes, and probably should at least require a TG with some kind of specification. Don't want to be reserving encodings for everybody's idea that's not yet fully formed.
