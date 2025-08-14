@@ -1,0 +1,74 @@
+= psABI meeting 14th August 2025
+
+Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Ana Pazos, Craig Topper, Gabriel Sant'Anna, Heinrich Schuchardt, Kai Cheng, Penngcheng Wang, Sam Elliott, Simon Cook, Zhongyao Chen, Petr Hosek, Philip Reames, Guo Ren, Henrik Gustafsson, Jiawei, Paul Kirth
+
+= Meeting minutes
+
+Last month's meeting minutes approved.
+
+= TG reforming process
+
+Ana: Call for candidates closed on Monday. RVI is verifying list of participants. Technical committee, i.e. those with voting rights, will have a vote on the candidates.
+
+= Status update for CFI-related PRs
+
+Kito: Deepak has proposed a new PLT format in #417, simplifying the implementation. CFI aims to improve security, but lazy-binding often seen as a security hole, so new proposal removes lazy-binding for CFI PLT entries. +
+Kito: Function signature-based labeling scheme (#434) updated and simplified based on the new PLT. +
+Kito: Also have a PR with an ELF attribute (#474) to specify how toolchains should disassemble MOP/HINT instructions. Relevant as shadow stack is using MOP instructions. Currently you cannot use the landing pad instructions if you don't have the extension enabled.
+
+Philip: Quick question on the bind now behaviour. How does that compare to x86 and Arm; do they also require bind now? +
+Kito: For x86, yes. Still have a PLT header as it's needed for LD_AUDIT in glibc. +
+Philip: To be clear, is what we're doing enabling bind now, or are we adding some third mode? +
+Kito: Not adding anything new. +
+Jessica: Confused about what is going on. If we still have a PLT header that can be branched to by PLT entries, why do we need to require lazy-binding, and how does that simplify things? Think I need to go read the PR to fully understand what's changed.
+
+Sam: In the first PR, each PLT entry is 4 instructions: lpad, auipc, addi and jalr. In a normal PLT we do auipc, addi, jalr and nop. Is there not a reason to always use the first PR's new PLT type? LPAD is AUIPC X0, so is a NOP without CFI. Would mean executing an extra NOP for non-CFI but would hope that doesn't affect performance. Would also still need to mark whether the binary is using CFI or not, and would need a different PLT header, but might simplify things. +
+Philip: I would support this, subject to making sure we check performance on existing hardware.
+
+= ABI for _BitInt (#419)
+
+Kito: Pi-You has provided data for various different schemes. Current data suggests extending according to the signedness of the type (i.e. sign-extend signed types, zero-extend unsigned types) would be best. For normal integer types, we have a special case for 32-bit integers, where they are always sign-extended even if unsigned. May want to do the same here for _BitInt(32). +
+Heinrich: Does that mean _BitInt(8) is the same as char, and so on? +
+Kito: For 8 and 16, yes, same as normal integer types. For 32, depends on whether we adopt this special case. +
+Craig: char does have the weird behaviour that its signedness is platform-specific. +
+Heinrich: Also have signed/unsigned char, would expect them to behave like (un)signed _BitInt(8). +
+Sam: Are the numbers in the table code size or performance? +
+Kito: Instruction count for code generation. +
+Jessica: Other special cases are 64 on RV32 and 128 on RV64. Do those also follow the same ABI as their normal integer counterparts? +
+Sam: Not quite the same, no extension going on there. +
+Jessica: True. I guess then the question is whether they're passed in register pairs in the same way. Presumably? +
+Kito: For _BitInt will also need to implement routines in libgcc and compiler-rt. Special-casing 32-bit might make those more complicated. +
+Craig: Would the compiler actually call into libgcc for the SI functions, and would those functions be assuming they're sign-extended? In the backend we also don't currently distinguish between _BitInt and normal integers, so _BitInt(32) is just i32. +
+Sam: Different question that might help. These libgcc routines, is there one routine for all N, or one per N? If one per N might be easier to special-case. +
+Kito: Only one routine for all. Does anyone have other concerns about this aside from these kinds of implementation ones?
+
+Kito: Current suggestion also says the byte layout is little-endian, but with there being a PR to add a big-endian ABI that will need updating.
+
+= Standard Fixed-length Vector Calling Convention Variant (#418)
+
+Kito: LLVM merged, GCC PoC also provided. Stable now, intend to merge in next month or so.
+
+= Clarify passing empty union and arrays of empty structs/unions (#464)
+
+Kito: View this as a GCC bug in a corner case. LLVM implements what's in the specification, but GCC does not. Intend to change this in GCC.
+
+= Account for flexible array members in the integer calling convention (#471)
+
+Jessica: Example here isn't great, this one is UB. In C, impossible to write an example. Only possible in {Cpp} due to guaranteed copy elision in newer versions of the standard, but flexible arrays are a GNU extension in {Cpp}, so not something the standard considers. Likely more of an unforeseen interaction between newer standard versions and pre-existing extensions. Really a question for the compiler vendors whether this is something they intend their extension to support or not. Believe Clang people do not, but was talking to them a while ago so do not remember. +
+Kito: If you believe it should be closed, please leave a comment.
+
+= Add initial specification for Big Endian (#470)
+
+Sam: Believe the only open question on this is about the calling convention? +
+Jessica: Yes, a while ago Andrew Waterman commented on another big-endian issue that GCC's calling convention was not ideal, and that when specifying it we should make sure to change it so it works better with extensions like Zilsd and Zdinx.
+
+= Document reserving standard encodings (#469)
+
+Jessica: Filed this just before travelling for a month so dropped the ball here. Have comments from Philip to get back to, though do think it's valuable to have the reserved encodings documented in the AsciiDoc, and should have at least some wording about what that does and does not mean in the same place.
+
+Kito: Will you present CHERI's psABI in future or just file PRs? +
+Jessica: First step is to just reserve things. Can present at some point after that, though we do have areas of our ABI to refine still, in part due to bringing up features from other architectures on RISC-V, and wouldn't get into all the details as they can get complex.
+
+= Other items
+
+Kito: Any other topics?
