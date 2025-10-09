@@ -1,0 +1,46 @@
+= psABI meeting 9th October 2025
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Christoph Muellner, Ana Pazos, Chao-ying Fu, Craig Topper, Heinrich Schuchardt, Isaac Chute, Jiawei, Liao Shihua, Paul Kirth, Petr Hosek, Sam Elliott, Zhongyao Chen
+
+= Meeting minutes
+
+Last month's meeting minutes approved.
+
+= TG reforming progress
+
+Ana: Prepared charter, now linked from TG page, feedback welcome. Will be reviewed at next TSC meeting, 5th November.
+
+= Status update for CFI-related PRs
+
+Kito: Not much to update. SiFive colleague trying to resolve an issue with sigset_t in glibc, hopefully soon. Then can move forwards with some of the PRs. For the last PR, adding the MOP/HINT attribute, will be closing the PR as discussed last week, but keeping open as conclusion requires changes in the toolchains.
+
+= Status update for other ABI items
+
+Kito: For #469 (Documenting reserving standard encodings), believe Jessica has addressed comments, so last call, will merge if no further comments. +
+Kito: For _BitInt (#419), most controversial part is big-endian chunk ordering. Updated since last meeting to follow s390 where chunk order follows endianness. Also added note there as reminder that big-endian as a whole is in experimental state. +
+Heinrich: For clarity, on s390 and big-endian aarch64 the chunks are ordered in big-endian? +
+Kito: Yes.
+Kito: Next is standard fixed-length vector calling convention (#418). Latest update is GCC patches now under review. Believe we meet requirement for both compilers having at least PoC. Again, last call for comments, otherwise will move forwards and merge. (No comments) Ok, will merge after meeting. +
+Kito: Next is GCC bug around empty unions and arrays of empty structs/unions (#464). Have initial patch, need more testing, but then will close PR as we previously decided the current specification is what we want. +
+Kito: Next is flexible array members (#471). Discussed multiple times before, consensus was not to support it, so now closed. +
+Kito: Next is big-endian (#470). Current GCC implementation does not match this proposal, Djordje Todorovic working on fixing this. +
+Kito: Last is TLSDESC relaxation (#475). Sam? +
+Sam: Thanks for finding that previous issue from MaskRay. Now updated the PR to remark that it doesn't work like the other relaxations and only requires a single relax relocation. +
+Kito: Now it's a documentation fix rather than an actual specification change shouldn't be controversial and can be merged.
+
+= Open Discussion
+
+Ana: Any takeaways from GCC Cauldron for those that attended? +
+Kito: Have one thing that I think is interesting, not so ABI-related but relevant to Toolchains SIG. Synopsys have a proposal for user to declare custom instructions at the C language level callable with an intrinsic, and interested in contributing implementation. Maybe should invite to next Toolchains SIG meeting? +
+Christoph: Inviting them sounds good. At first glance looks like another way of doing inline assembly. +
+Kito: Yes, though they also have the ability to emit some ELF metadata to help disassembly rather than it just printing .insn. +
+Ana: Do you have the name of this presentation so we can find it online later? +
+Kito: Will send later. +
+Christoph: Is this RISC-V-specific? +
+Kito: Don't think it needs to be but that's where they're doing it. Have open implementation for GCC and binutils. +
+Sam: For full disclosure, I have a talk on member day about the approach we've been taking at Qualcomm. Don't push it up to the C level with pragmas, but have something that allows us to assemble and disassemble custom extensions. +
+Kito: Had a chat with them, they're not tied to the specifics of their approach, open to adapting. +
+Kito: Jiawei also had some interesting information about benchmarking GCC vs LLVM and interesting results. GCC beat LLVM a lot, would be useful to understand more why. https://conf.gnu-tools-cauldron.org/opo25/talk/MA8Z7C/ +
+Craig: Was that with the EVL vectorizer? Not sure when this was gathered. +
+Jiawei: Was done with vectorization enabled. +
+Craig: Up until a month or so ago needed a special option to enable the second, better vectorizer that used VSETVLI.
