@@ -1,0 +1,53 @@
+= psABI meeting 6th November 2025
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Christoph Muellner, Ana Pazos, Chao-ying Fu, Craig Topper, Deepak Gupta, Isaac Chute, Paul Kirth, Philip Reames, Ruinland Tsai, Sam Elliott, Simon Cook, Petr Hosek, Petr Penzin
+
+= Meeting minutes
+
+Last month's meeting minutes approved.
+
+= TG reforming progress
+
+Ana: Kito presented charter at yesterday's TSC meeting, no objections raised. Now waiting for formal approval. After 6 months committed to providing progress update. Believe no further action needed from us.
+
+= Status update for CFI-related PRs
+
+Kito: Sent out new version of glibc patches. +
+Deepak: Push-back from kernel maintainers re VDSO, don't want config option to always use CFI in VDSO in case Zimop not implemented. New version that will hopefully be merged.
+
+= Document [u]intmax_t
+
+Sam: Various non-portable types like [u]int_fastN_t, non-portable because I believe it can vary based on compiler flags. Should document that they're not portable and so shouldn't be used in interfaces. But [u]intmax_t leaks into ABIs and should be specified; e.g. we specify max_align_t's alignment. +
+Jessica: Believe FreeBSD's definitions differ from Clang's, for example, would not be surprised if there are inconsistencies on other platforms too.
+
+= ABI for _BitInt
+
+Kito: Now have GCC implementation. Have added special rule for _BitInt(32) on RV64 so it matches int/int32_t. Would like to move forwards; any comments or objections?
+
+= Fixed-length vector calling convention
+
+Kito: GCC patch has been merged. Some rewording needed for better English, but otherwise believe ready.
+
+= Empty unions and arrays of empty structs/unions
+
+Kito: GCC ABI fix has been merged, will be in next release, so issue is closed.
+
+= Initial big-endian specification
+
+Kito: Currently under review, need to take time for the calling convention.
+
+= Open discussion
+
+Kito: Paul, are you still interested in execute-only memory? +
+Paul: Yes, still plan to, just haven't had time to get to writing it up yet. +
+Sam: Believe it will end up interacting badly with the large code model. Don't know if that's a problem in practice though, use cases may not need both.
+
+Sam: On the CFI side, concerned we'll end up with three core ABIs: not CFI-compatible, CFI-compatible with unlabelled scheme, and CFI-compatible with labelled scheme. If we deploy unlabelled scheme, unlikely to want to go through hassle of switching to labelled scheme. Ideally only have to go through that pain once, then could switch scheme without needing to recompile for an incompatible ABI, e.g. could we go with a labelled scheme where they're all the same value? +
+Deepak: Has been my concern as well, fragmentation is likely to result in it not being adopted at all. PLTs should be done in a way to allow mixing. But callbacks have issues, caller may not put value in register if not expecting CFI. +
+Sam: Will need to label things as landing pad-compatible at the very least. Then up to the loader what it does if you load a library that isn't marked landing pad-compatible. Hopefully could then have the loader decide what CFI labels to use, too. But not familiar enough. +
+Deepak: Maybe Kito and I could present things next meeting? +
+Sam: I'll also take time to look at it myself. Distributions have an easier time, they can just use the same flags everywhere, but hard for third-party software providers to know which to use. Know it's hard because can't relocate text section to change immediates. +
+Deepak: Labelled scheme can have incompatibilities, so depending on security posture may not want it; e.g. government agency could choose to enable it and invest in making it work for their environment. Ideally everything would support it but would take time to make work everywhere. Have compatibility between unlabelled and labelled objects when going via PLTs, but not when bypassing. +
+Sam: Want to ensure we have a path to labelled but don't want to hold up unlabelled from being usable in upcoming LTS distro releases. +
+Petr: Work with Paul on Android team, though primarily Fuschia. Can reach out to Android team to see if they're thought about CFI. Easier for Android as we own the ecosystem, so might have interest in using the labelled scheme. +
+Isaac: Seems like having distro people here would be useful. Can reach out to see if they have toolchain people who would like to join this.
