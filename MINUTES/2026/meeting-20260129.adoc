@@ -1,0 +1,68 @@
+= psABI meeting 29th January 2026
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Zhi Zhuang, Ana Pazos, Atul Prathap, Bohan Lei, Chao-ying Fu, Craig Topper, Deepak Gupta, Jiawei, Jordan Jerome, Josua, Min Hsu, Pengcheng Wang, Petr Hosek, Philip Reames, Ruinland Tsai, Sam Elliot, Shihua, Simon Cook
+
+= CFI Update
+
+Kito: Giving an overview and update. +
+Kito: Landing pad and shadow stack similar to x86 (CET and IBT) and AArch64 (BTI and GCS). +
+Kito: Key difference from other architectures is landing pad. For indirect jumps, target must be a landing pad instruction. But on RISC-V, landing pad includes a 20-bit immediate label, and instruction will check label register contains matching value. Landing pad also must be 4-byte aligned, helps avoid jumping into middle of instruction.
+
+Kito: [Looking at dynamically-linked hello world] When main executable calls printf, jumps to printf entry in PLT. For many distros, lazy binding in use, first jump to printf PLT entry will be when dynamic linker does the lookup to find printf in libc. +
+Kito: For CFI, need all loaded objects to be CFI-ready before CFI can be turned on. Also, key to note that PLT entry performs an indirect jump. Also, since CFI is a security feature, turn off lazy binding when CFI is enabled to mitigate rewriting attacks. PLT entry itself may also be indirect jump target.
+
+Kito: Basic issues so far: need mechanism to mark objects CFI-ready, and need landing pads for PLT entries. +
+Kito: Other issues: what if not all dependencies CFI-ready? or use dlopen? or labeling scheme doesn't match? (last one discussed later)
+
+Kito: For marking objects, use program property, new special section. Why not existing RISC-V attributes section? Not allocatable section (not loaded at run time), something not properly considered when first specified, and other targets (x86 and AArch64) already use this same program property section, so easier to port software, can reuse existing implementation. +
+Kito: For PLT, add `lpad 0` instruction (shifts instructions down to replace trailing nop), and switch jump target register to t2, which tells jalr to ignore the label at the jump target. +
+Sam: Doesn't the landing pad need t2 to have the right label in the landing pad? +
+Kito: This is special case in CFI spec, called software guarded jump. +
+Sam: Also mentioned before that the `lpad 0` is also a nop, so talked before about possibly just always using the CFI version. But if register usage is also different then seems less like a good idea. +
+Jessica: Going back to lazy binding, is that disabled just for security reasons or because it's incompatible? Keeping t1 as link register doesn't make sense if not supporting lazy binding, given only exists for PLT header to determine which entry you just called in order to do lazy binding. +
+Kito: In order to support `LD_AUDIT` it is compatible, just disabled by default.
+
+Kito: For compatibility issues, if dependency does not support CFI will disable CFI, or possibly add an option to error. For dlopen will do the same, and similarly could have an option to make it fail.
+
+Kito: For static linking, crt init will do the enabling if supported.
+
+Kito: For Linux system calls, shadow stack allocation uses generic system call, and both shadow stack and landing pad have set/get/lock prctl operations.
+
+Kito: Want to be able to use 20-bit label field. Using (low 20 bits of md5) hash of function signature, via Itanium {Cpp} mangling. Insecure nature of md5 should not be an issue given the context being used. Long discussion getting that to work, though may well still have some corner case issues. +
+Min: Mentioned md5 has collision issues, but is that not an issue here? +
+Kito: Any hash function has collision possibility, already low probability. But not a security person. +
+Min: Also not a security person. +
+Jessica: Just been thinking about this since mentioned. Believe less about probability and more about threat model. Md5 has issues when e.g. attacker trying to find collisions, but in this case that would mean attacker loading malicious library. But at that point why would they bypass CFI instead of just poking the memory directly? +
+Deepak: Also important to remember only low 20 bits, so still would be heavily truncating something like SHA-1. +
+Craig: Also special case for all-zeroes to not look like unlabeled, right? +
+Kito: Yes, takes different bits. Also special special case if whole hash is zeroes, not just low bits.
+
+Deepak: Kees Cook using KCFI with Clang to do similar kind of hashing. +
+Kito: Yes, also based on Itanium {Cpp}.
+
+Kito: For PLT with function signature, only difference is using function signature in lpad's label immediate, rather than 0. But now static linker needs to know those values. So add asm directive and special section to associate symbols with signatures.
+
+Kito: As optimisation, could have marker relocation to do relaxation to remove lpad if only called directly (including via call).
+
+Kito: For unabeled scheme, needs update for binutils and glibc blocked on linux upstreaming, and LLVM missing support in LLD. Has been tested on SPEC 2006 and 2017 with Yocto. +
+Kito: For function signature scheme, both still being integration tested to find issues.
+
+Kito: Remaining challenges: function signature part still needs more testing and more time before distros can stabilise adopting it, and other toolchains will need extra support, including JITs. +
+Jessica: Leads into my question. Language runtimes and JITs do all kinds of horrendous things, has anyone looked at the feasibility of something like V8 adopting a signature scheme? +
+Kito: Even if using signature scheme for rest of system, could use unlabeled scheme within JIT code. +
+Jessica: Also to clarify, if you have `lpad 0`, does that mean "expect zero label" or "ignore label"? +
+Kito: Ignores label. +
+Jessica: Ok, so compatibility in one direction when mixing.
+
+Min: What is the issue with dlopen exactly? +
+Kito & Deepak: CFI enabled at program startup, dlopen happens later, so may need to retroactively disable.
+
+= Meeting minutes
+
+Last month's meeting minutes approved.
+
+= Other status updates
+
+Kito: Long list of updates since last meeting, been a while. For highlights, have open PR to reserve some relocations for CHERI (RVY), any comments? Otherwise will merge after meeting. Also one to update description for vendor relocation scheme, discussion about dynamic vendor relocations but so far not allowing, current scheme not quite right for it, so clarifying. Recent proposal about Linux-specific linker emulation, more of a linker implementation question so for toolchain conventions not psABI. New PR just created before meeting about R_RISCV_RELAX with (no)rvc. Sam I think you have one thing to mention too? +
+Sam: Sent message to mailing list, no PR yet, for opinions about using relocations to mark instructions that we want to be able to relax but don't otherwise need a relocation. Already have such a thing for TLS Local Exec on the add instruction, may want to for example do it for long branch sequences. More of a general question about this idea, not specific uses. Have more content but we're already over time so will leave for next time. Happy to open issue if wanted. +
+Jessica: Copy-pasting that email into a GitHub issue would be helpful I think, easier for people to respond to.
