@@ -1,0 +1,33 @@
+= psABI meeting 26th February 2026
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Ana Pazos, Bohan Lei, Craig Topper, Jiawei, Joshua, Paul Kirth, Petr Hosek, Sam Elliott, Simon Cook, Heinrich Schuchardt
+
+== Meeting minutes
+
+Last month's meeting minutes approved.
+
+== TG reforming progress
+
+Kito: Charter finally approved by TSC, TG now officially active. Mid-point update due 6 months after TSC approval.
+
+== CFI update
+
+Kito: Last meeting promised new version of glibc patches. Found new issues during internal testing, so not sent yet. Collaborating with Canonical, hoping to enable shadow stack in 26.10. +
+Kito: For MOP/HINT changes, LLVM implementation published, waiting on GNU implementation.
+
+== Big-endian
+
+Kito: Spec still under review. Some LLVM stuff landed. +
+Sam: LLD still under review. Does anyone know what's going on with the calling convention? +
+Kito: 2 x XLEN gets weird with the layout. +
+Jessica: GCC had an existing calling convention, PR got changed I think to do something different? Not sure if GCC has been or will be changed, and not sure what LLVM ended up following. Is it marked experimental in GCC? +
+Kito: Not currently. +
+Jessica: Should do so, to avoid vendors using it and it becoming a de-facto ABI we either have to keep supporting or break. Same situation as RVE but for embedded case much easier to recompile everything for ABI break.
+
+Kito: Y base ISA relocations reserved. Merged note for vendor relocations being static only. Proposal to add Linux emulations closed, new toolchain conventions PR to document existing emulations. +
+Sam: To clarify, we concluded the emulations not needed, PR is just to write down what we already have.
+
+Kito: Last one is relaxation marker relocations, discussed at the end of last meeting. Sam? +
+Sam: Question is how much we feel happy to add relocations like `R_RISCV_TPREL_ADD` that don't change instruction but mark it so you can relax later. Doesn't change fields in the instruction itself when linking, but if relaxing know where the add is to modify or delete it for the relaxed sequence. Thinking about using that approach in our vendor spec, but don't want to be doing something wildly different from base spec. Kito, think you're ok with this? +
+Kito: Yes. Long to short branch conversion makes sense. Impossible to relax at the moment. Also have additional code models within SiFive, using similar techniques there. Could also maybe use to relax large code model sequences. +
+Jessica: One thing I'd add, good candidate for optimising existing code sequences, but wouldn't want to start relying on them for sensible performance. For example, wouldn't want to always use large code model and rely on relaxing to more sensible sequences.
