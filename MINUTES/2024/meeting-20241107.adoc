@@ -2,11 +2,11 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Sam Elliott, Ana Pazos, Carl Perry, Craig Topper, Elliott Hughes, Liao Shihua, Ruinland Tsai, Paul Kirth, Guo Ren, Isaac Chute, Petr Hosek
 
-= Agenda
+== Agenda
 
 Kito: Not a huge amount today. Update on CFI-related PRs. Discussion on RV64 ILP32 ABI, and an issue that's a combination of several topics (#453).
 
-= CFI-related PRs
+== CFI-related PRs
 
 Kito: Program property and PLT for CFI extension (#417) now stable, have LLVM. Trying to introduce new relocation for landing pad and implement in LLD (#452). Used for linker relaxation to drop landing pad instruction or skip for specific call direct call. +
 Elliott: Talk about CFI at RISE, sent a link to Android CFI folk. They like forward edge because of the labels. Weren't sure why the virtual calls didn't use class hierarchy to limit the set more. +
@@ -25,7 +25,7 @@ Sam: Can't you do BTI on a per-page basis, so each library can be separate? +
 Elliott: Yes, but still means your process isn't fully protected even if some libraries are. +
 Sam: Also can't do shadow stack on a per-library basis.
 
-= ILP32 on RV64
+== ILP32 on RV64
 
 Liao: Call it "New 32" or "rv64ilp32". Use EF_RISCV_N32 flag to mark. Sign-extend pointer types but limit address space to lower 2 GiB. +
 Kito: Why do we need the address space restriction if we're sign-extending pointers? +
@@ -60,7 +60,7 @@ Guo: Nuttx and RT-Thread have.
 
 Kito: Will consider this, but may be an experimental ABI like ILP32E.
 
-= Relocations, ELF Markers and >32-bit Instructions
+== Relocations, ELF Markers and >32-bit Instructions
 
 Kito: Last topic (#453) from Sam. +
 Sam: Qualcomm have new set of extensions, can also talk to Ana about it. Various new instructions, some wider ones need relocations. In particular, 48-bit ones that need a wide field, e.g. load 32-bit immediate. Question is whether we can reuse existing relocations like R_RISCV_32. +

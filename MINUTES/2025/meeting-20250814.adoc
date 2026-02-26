@@ -2,15 +2,15 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Ana Pazos, Craig Topper, Gabriel Sant'Anna, Heinrich Schuchardt, Kai Cheng, Penngcheng Wang, Sam Elliott, Simon Cook, Zhongyao Chen, Petr Hosek, Philip Reames, Guo Ren, Henrik Gustafsson, Jiawei, Paul Kirth
 
-= Meeting minutes
+== Meeting minutes
 
 Last month's meeting minutes approved.
 
-= TG reforming process
+== TG reforming process
 
 Ana: Call for candidates closed on Monday. RVI is verifying list of participants. Technical committee, i.e. those with voting rights, will have a vote on the candidates.
 
-= Status update for CFI-related PRs
+== Status update for CFI-related PRs
 
 Kito: Deepak has proposed a new PLT format in #417, simplifying the implementation. CFI aims to improve security, but lazy-binding often seen as a security hole, so new proposal removes lazy-binding for CFI PLT entries. +
 Kito: Function signature-based labeling scheme (#434) updated and simplified based on the new PLT. +
@@ -25,7 +25,7 @@ Jessica: Confused about what is going on. If we still have a PLT header that can
 Sam: In the first PR, each PLT entry is 4 instructions: lpad, auipc, addi and jalr. In a normal PLT we do auipc, addi, jalr and nop. Is there not a reason to always use the first PR's new PLT type? LPAD is AUIPC X0, so is a NOP without CFI. Would mean executing an extra NOP for non-CFI but would hope that doesn't affect performance. Would also still need to mark whether the binary is using CFI or not, and would need a different PLT header, but might simplify things. +
 Philip: I would support this, subject to making sure we check performance on existing hardware.
 
-= ABI for _BitInt (#419)
+== ABI for _BitInt (#419)
 
 Kito: Pi-You has provided data for various different schemes. Current data suggests extending according to the signedness of the type (i.e. sign-extend signed types, zero-extend unsigned types) would be best. For normal integer types, we have a special case for 32-bit integers, where they are always sign-extended even if unsigned. May want to do the same here for _BitInt(32). +
 Heinrich: Does that mean _BitInt(8) is the same as char, and so on? +
@@ -44,31 +44,31 @@ Kito: Only one routine for all. Does anyone have other concerns about this aside
 
 Kito: Current suggestion also says the byte layout is little-endian, but with there being a PR to add a big-endian ABI that will need updating.
 
-= Standard Fixed-length Vector Calling Convention Variant (#418)
+== Standard Fixed-length Vector Calling Convention Variant (#418)
 
 Kito: LLVM merged, GCC PoC also provided. Stable now, intend to merge in next month or so.
 
-= Clarify passing empty union and arrays of empty structs/unions (#464)
+== Clarify passing empty union and arrays of empty structs/unions (#464)
 
 Kito: View this as a GCC bug in a corner case. LLVM implements what's in the specification, but GCC does not. Intend to change this in GCC.
 
-= Account for flexible array members in the integer calling convention (#471)
+== Account for flexible array members in the integer calling convention (#471)
 
 Jessica: Example here isn't great, this one is UB. In C, impossible to write an example. Only possible in {Cpp} due to guaranteed copy elision in newer versions of the standard, but flexible arrays are a GNU extension in {Cpp}, so not something the standard considers. Likely more of an unforeseen interaction between newer standard versions and pre-existing extensions. Really a question for the compiler vendors whether this is something they intend their extension to support or not. Believe Clang people do not, but was talking to them a while ago so do not remember. +
 Kito: If you believe it should be closed, please leave a comment.
 
-= Add initial specification for Big Endian (#470)
+== Add initial specification for Big Endian (#470)
 
 Sam: Believe the only open question on this is about the calling convention? +
 Jessica: Yes, a while ago Andrew Waterman commented on another big-endian issue that GCC's calling convention was not ideal, and that when specifying it we should make sure to change it so it works better with extensions like Zilsd and Zdinx.
 
-= Document reserving standard encodings (#469)
+== Document reserving standard encodings (#469)
 
 Jessica: Filed this just before travelling for a month so dropped the ball here. Have comments from Philip to get back to, though do think it's valuable to have the reserved encodings documented in the AsciiDoc, and should have at least some wording about what that does and does not mean in the same place.
 
 Kito: Will you present CHERI's psABI in future or just file PRs? +
 Jessica: First step is to just reserve things. Can present at some point after that, though we do have areas of our ABI to refine still, in part due to bringing up features from other architectures on RISC-V, and wouldn't get into all the details as they can get complex.
 
-= Other items
+== Other items
 
 Kito: Any other topics?

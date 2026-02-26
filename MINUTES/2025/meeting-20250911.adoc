@@ -2,19 +2,19 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Ana Pazos, Chao-ying Fu, Christoph Muellner, Craig Topper, Liao Shihua, Luke Lau, Pengcheng Wang, Petr Hosek, Petr Penzin, Philip Reames, Sam Elliot, Zhongyao Chen
 
-= Meeting minutes
+== Meeting minutes
 
 Last month's meeting minutes approved.
 
-= TG reforming process
+== TG reforming process
 
 Ana: Congratulations to Kito and Jessica for being appointed. You should make sure charter has been reviewed at some point and is aligned with 2.0 proposal. I will figure out if we need to present at TSC at some point.
 
-= Other admin
+== Other admin
 
 Kito: Meeting minutes placed under Toolchain SIG, historically. Have new psABI workspace, but think best to continue with current process. Have made minutes page reference the Toolchain SIG page and point at the GitHub repo.
 
-= Status update for CFI-related PRs
+== Status update for CFI-related PRs
 
 Kito: Continuing to work on PRs and upstreaming. Main notable change is to add an ELF attribute around MOPs and HINTs (#474). Historically could only use instructions if extension enabled, but instructions are in NOP (as MOP or HINT) space. Confusing, as need to enable the extension if using the mnemonic, or using the underlying NOP if extension not enabled (e.g. AUIPC X0). ELF attribute tries to address this, to allow using mnemonic without enabling extension. +
 Sam: One question about those HINTs. How much are we expecting the MOPs to be reallocated for different uses? +
@@ -36,11 +36,11 @@ Sam: Probably no? +
 Jessica: Starts to get a bit weirder. Not quite sure if it's a sensible use case. +
 Jessica: Talking about LPAD here, but shadow stack a bit different. For Zimop/Zcmop, instinct would be to require the underlying encoding to be enabled by the relevant extension, but not require the specific CFI extension.
 
-= Document reserving standard encodings (#469)
+== Document reserving standard encodings (#469)
 
 Jessica: Updated since last meeting. Have restructured and extended to hopefully include feedback, and based on discussion last month. Couple of things I disagreed with and therefore have not changed. Please take a look and let me know if there is any further feedback (or disagreement).
 
-= ABI for _BitInt (#419)
+== ABI for _BitInt (#419)
 
 Kito: Pi-You and I have spent time on LLVM and GCC. Believe approach discussed last time is possible, just some more work to do in the backends. That is, yes, the libgcc routines are compatible with special-casing N=32 to match normal integers. Does anyone have any strong opinions either way? I believe we should not do it then. +
 Jessica: Believe last time we agreed that we should do it unless good reason not to. Complicates implementation but conceptually simpler, and less surprising for ABI to match between _BitInt(32) and (u)int32_t. +
@@ -57,15 +57,15 @@ Heinrich: Is this what other architectures do? What about Arm? +
 Jessica: Not sure Arm is best to look at, big-endian is second-class there as not being properly used. PowerPC or z/Architecture may be better to look at, though not sure the status of _BitInt in their ABIs. +
 Heinrich: I can look at this.
 
-= Standard Fixed-length Vector Calling Convention Variant (#418)
+== Standard Fixed-length Vector Calling Convention Variant (#418)
 
 Kito: Not much to update here.
 
-= Account for flexible array members in the integer calling convention (#471)
+== Account for flexible array members in the integer calling convention (#471)
 
 Jessica: Right, looking back at the minutes I was supposed to comment and close this. I will make sure to do that this time round. I assume nobody has come to believe that's wrong in the meantime?
 
-= TLSDESC Relocs Each Require a RELAX (#475)
+== TLSDESC Relocs Each Require a RELAX (#475)
 
 Sam: MaskRay's spent a lot of time reducing binary size, suspect that's where he's coming from here. My view is relaxed, either we explicitly highlight that it's inconsistent with the rest of the ABI or we just have the extra relaxations. Maybe also more complicated if only some have relax. LLVM doesn't currently mark as relaxable at all. It seems you Kito also side with consistency? +
 Jessica: My take is that TLS is so rarely used that it isn't going to be that significant for reducing binary size. Maybe being used for errno if you expose it as a real TLS variable, but outside of that, rare. Could see this argument making sense for GOT or PC-relative accesses, where particularly redundant with the second relocation pointing directly at the first with both marked, and common in compiled code, but don't believe TLS is a significant enough contributor to be worth being inconsistent for.

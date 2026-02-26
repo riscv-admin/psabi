@@ -10,7 +10,7 @@ Philipp: Don't think we can get long list done by then. +
 Christoph: TG formally shut down, but Kito still in charge of psABI topics. +
 Philipp: Two things: thank you Kito for merging things related to Zc, and congratulations on your award. Very happy Kito is in charge of maintenance work in between TGs. CCM meeting tomorrow, should have slides outlining what next TG needs to achieve to request its formation. +
 
-= Items for the next release
+== Items for the next release
 
 Kito: Have a lot of things on the list here, should we have multiple TGs, e.g. for embedded ABI? +
 Philipp: Thinking we'd have two groups, one for embedded, one for new year work package and discussing larger changes. Single meeting. All pretty clear on what's needed. Want to make sure we complete on feature ones.
@@ -36,11 +36,11 @@ Kito: I assume it's like x86. +
 Jess: What's the justification for wanting it? Type punning via memory? +
 Philip: Lots of small things, emergency spill slot, optimising leaf functions, no one big feature, but does help make toolchain implementation easier.
 
-= Call for chair/vice-chair candidates for psABI TG
+== Call for chair/vice-chair candidates for psABI TG
 
 Philipp: Want this to be figured out by end of January to align with planned TG formation timeline.
 
-= Open discussion
+== Open discussion
 
 Jeff: Missed start, what's the status of Zc PR? +
 Philipp: Merged, but need to track PoC to make sure it's updated to match.

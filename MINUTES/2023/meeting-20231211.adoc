@@ -2,25 +2,25 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Christoph Muellner, Anton Sidorenko, Elliot Hughes, Isaac Chute, JojoR, Luis Marques, Ptr Hosek, Philip Reames, Richard Jones, Simon Cook
 
-= #397 Relax GOT indirection into PC-relative addressing
+== #397 Relax GOT indirection into PC-relative addressing
 
 Merged
 
-= #402 Define GOT-Relative data relocation
+== #402 Define GOT-Relative data relocation
 
 Merged
 
-= #408 Clarify that multiple R_RISCV_LO12_I/R_RISCV_LO12_S can share one single R_RISCV_HI20
+== #408 Clarify that multiple R_RISCV_LO12_I/R_RISCV_LO12_S can share one single R_RISCV_HI20
 
 Merged
 
-= #406 Argument passing/returning value for fixed-length vector
+== #406 Argument passing/returning value for fixed-length vector
 
 Closed
 
 (Minutes started here at 15:15 UTC)
 
-= #409 ELF attribute for profiles
+== #409 ELF attribute for profiles
 
 Kito: Christoph, could you give some description about this? +
 Christoph: Profiles exist and are ratified. Question is should we support more on the toolchain side. Proposal here would be to record profile used by specific binary. +
@@ -42,22 +42,22 @@ Philip: Yes, can do our own X extension. +
 Richard: Have annocheck on the Red Hat side. +
 Philip: Should look at that. If there's things in finding then useful to know of that kind of use case.
 
-= #413 Remove restrictions on ULEB128
+== #413 Remove restrictions on ULEB128
 
 Kito: Proposal to remove limitation that only exists for ULEB128. Read/omment if interested.
 
-= ePIC
+== ePIC
 
 Kito: Current discussion on how to determine relocation. Currently done by writable/non-writable, but means rodata must be with text. Suggesting to use another mechanism. +
 Luis: Unsure if this is actually an issue for embedded systems. Could also put rodata in writable output section if needed. +
 Jess: Haven't thought through syntax or implementation, but could you use linker scripts' memory regions syntax to distinguish between PC and GP cases? +
 Luis: Maybe, though not sure how important this is.
 
-= Vector calling convention]
+== Vector calling convention]
 
 Kito: Supported by Andrew Aterman, Roger Ferrer, Christoph Muellner and Jeff Law. Need to clarify what happens when out of vector argument registers. Questions about glibc resolvers and setjmp/longjmp. Plan to move forward after addressing.
 
-= Large code model
+== Large code model
 
 Kito: Three proposals mentioned, constant pool, long instruction sequence and TOC pointer. Various advantages and disadvantages. TOC scheme not preferred since incompatible, need fixed register. OoO core faster for long instruction sequence, not true for low end core. Perhaps should have both. +
 Jess: Think Andrew's comments need some citation, performance not that clear. Many arithmetic instructions may take longer than something hitting in a big cache. TOC can be made compatible, but performance is poor. More importantly, deviating from normal GOT is painful for toolchains, so would rather not see that happen. +

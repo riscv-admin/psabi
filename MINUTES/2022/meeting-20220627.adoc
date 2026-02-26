@@ -2,13 +2,13 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Mark Himelstein, Anders Berg, Chunyu Liao, Jiawei, Jim Wilson, Simon Cook, Philipp Tomsich
 
-= Status Updates
+== Status Updates
 
 Kito: Fixed-point rounding mode and saturation flags ABI was deferred but arch review says it needs to be defined. Bunch of other non-blocking issues also filed by IAR and Rivos (Palmer), will work through those but can proceed without. +
 Mark: Please clarify what non-blocking means? +
 Philipp: Can be addressed after public review.
 
-= VXRM and VXSAT
+== VXRM and VXSAT
 
 Kito: Need to define it now to avoid ABI break. Two proposals: follow FCSR/fenv, and define as not preserved/unspecified on entry. +
 Kito: C defines fenv as preserved unless the function documents otherwise. Existing libraries don't document changing fixed point rounding mode so must backup and restore if choosing to follow fenv. Also no default, likely to change often and even within a single implementation (only have dynamic fixed-point rounding mode instructions to save opcode space), unlike fenv. +
@@ -20,7 +20,7 @@ Kito: Can wait one or two weeks. +
 Philipp: No, already done, final now, just documenting decision made here. If someone needs to pull the emergency brake they can file an issue during public review. +
 Mark: This is our attempt to get to closure. Can't keep on having weeks of waiting on things we've been discussing for a while.
 
-= Clarification needed for Tag_RISCV_unaligned_access
+== Clarification needed for Tag_RISCV_unaligned_access
 
 Kito: Issue #283. Tag is unclear. Different instructions can have different policies (scalar loads/stores vs vector loads/stores vs AMOs), and different extensions (Zam and Zicclsm) for unaligned access support. Current tag just defined to be that the compiler generates unaligned accesses. +
 Mark: As defining profiles, some things will have mandatory and non-mandatory support. Will be extension names for unaligned access coming up. +
@@ -38,18 +38,18 @@ Philipp: Either an IFUNC resolver or an ELF capability. +
 Mark: How does it figure it out? +
 Philipp: Let's take it offline. There's the ELF flag and a way to have specialised functions. Will walk you through later.
 
-= Tag_RISCV_arch
+== Tag_RISCV_arch
 
 Kito: PR #292. Currently states it's the superset of the -march for all object files. Intention was the minimal execution environment. Objects can contain vector instruction, but may not be required if guarded by run-time check. Useful for IFUNC. Didn't state that in the spec. Tried to change it but got pushback. +
 Jess: Don't understand why it's breaking and adding a new tag helps, commented on the issue. Old binaries won't have whatever new tag gets defined so would need to treat the old tag as the default value for the new tag, giving the exact same behaviour as redefining. New binaries would have the new tag but old tools wouldn't know about it, so would conservatively assume the old tag's value as the required environment, which is worse than redefining where it would just work. Also -march isn't the right way to use IFUNCs, that's with function-specific attributes, -march has always been the way to specify the requirements for a file. Only issue is when linking multiple together and calls into one are guarded by dynamic checks in another, but there's no way with current tooling to communicate that high-level intent anyway so that's not a case that matters at the moment. +
 Kito: Already emitted by compilers but almost no consumers. Your view is we should go ahead and change? +
 Jess: Yes but would like clarification from Palmer on why he believes it's breaking.
 
-= Exception pointer/selector registers not specified
+== Exception pointer/selector registers not specified
 
 Kito: Issue #293. Don't document which registers used for C++ exception handling. Good to document but need to find right terms, couldn't find in x86 or Arm specs.
 
-= Tweak wording for FCSR
+== Tweak wording for FCSR
 
 Kito: Issues #288 and #289. Current wording is fcsr has thread storage duration, but that applies to language objects not ISA registers. Proposed wording in #288 involves language-specific wording, but #289 borrows language from AArch64. +
 Philipp: Prefer keeping language-specific wording out. To confirm, the wording matches the behaviour needed for C? +
@@ -59,7 +59,7 @@ Kito: Currently GCC and Clang/LLVM only partially support it. +
 Philipp: Will go back and read the spec. +
 Kito: Not blocking so no rush to fix, please submit comments to the PR if you have them.
 
-= Open Discussion
+== Open Discussion
 
 Kito: Will discuss EABI state with Anders. Some progress made but doing internal review so not ready to be made public. Hopefully can discuss initial version soon. +
 Anders: Need to discuss latest iteration with colleagues before we can send anything. Most are away until mid-August, so some time after then. Kept thinking finished but then something new; think this will be the final one. +

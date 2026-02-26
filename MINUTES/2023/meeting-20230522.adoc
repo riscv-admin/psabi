@@ -2,15 +2,15 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Petr Hosek, Allison Randal, Christoph Muellner, Craig Topper, David Brash, Elliot Hughes, Guo Ren, Hans Boehm, Jeremy Bennet, JojoR, Luis Marques, Palmer Dabbelt, Patrick O'Neill, Paul Kirth, Sergei Lewis, Shihua, Tatsuyuki Ishi, Yixuan Chen, Yulong, Anders Berg, Jiawei
 
-= Status Update
+== Status Update
 
 Kito: New PRs for vector ABI, atomics and ilp32 on RV64. Updates on TLSDESC and __bf16.
 
-= __bf16 Type
+== __bf16 Type
 
 Kito: Itanium {Cpp} ABI has landed support for std::bfloat16_t so no longer blocked. Need to decide operational semantics.
 
-= Atomics
+== Atomics
 
 Kito: Have three different atomic mappings: A.6, A.6+fence and A.7. A.6 and A.6+fence are compatible, and A.6+fence and A.7 are compatible, but A.6 and A.7 are not compatible. GCC's old mapping can be ignored since it's buggy. Current GCC implements A.6+fence. Current LLVM implements A.6, patch exists to migrate to A.6+fence but still under discussion. +
 Hans: Understanding is LLVM is waiting for us, rather than seeing active discussion. Point of A.6+fence is as a compatibility bridge between A.6 and A.7; means no ABI break when go to A.7 for those without A.6 code, and minimises future break for those that do. +
@@ -56,7 +56,7 @@ Philip: Can put A.7 in as non-normative, then if instructions/mapping change the
 Palmer: Should we have a table that is implementing A.7 with existing instructions? +
 Jess: Isn't A.6+fence that? Possibly can drop a fence on seq_cst AMOs.
 
-= ePIC
+== ePIC
 
 Luis: Have proposal ready for review, though open to alternative designs. First step to decide if want overall design. Ideally then get early approximate consensus on relocation encodings, compiler flags, etc, to avoid churn. +
 Kito: Would be good if ePIC shared details with FDPIC in future. +
@@ -74,7 +74,7 @@ Palmer: But it is by name? +
 Luis: Using attributes to determine which segment. +
 Palmer: But there's one new segment that can move? Worry is now there are cross-segment linking rules.
 
-= TLSDESC
+== TLSDESC
 
 Tatsuyuki: TLSDESC has special resolver that doesn't require saving registers. Also clarified ABI to specify vector registers as callee-saved. Believe spec is ready for those who wish to implement. Working on prototyping GNU toolchain. Glibc mostly done, should be shared later this week. GCC still WIP, found it doesn't like referring to labels. Assembler not started, nor linker optimisation. +
 Jess: One comment, didn't get a chance to leave before meeting. Already have syntax inline for adding TP for one or both of IE and LE, .tlsdesc_call should be the same. Also makes it less dangerous in presence of relaxation; avoids issue with nops being inserted between directive and instruction. +
@@ -84,14 +84,14 @@ Elliot: Working on LLVM patches. +
 Jess: With a libc, e.g. bionic, or using glibc? +
 Elliot: No, just toolchain.
 
-= RV64 ILP32
+== RV64 ILP32
 
 Shihua: PLCT/T-HEAD working on RV64 ILP32 for GCC, binutils, glibc, LLVM, Linux and QEMU. Calling convention discussion on hold until have benchmark data. One question, how to distinguish RV64 ILP32 from RV64 LP64 and RV32 ILP32? Could have e_flag or new e_machine value. New machine would add complexity, differs from EM_RISCV and may cause confusion. +
 Jess: X32 and N32 are architecture-specific names (X for X86, N for New, as opposed to O32 Old ABI on MIPS) so shouldn't be used, but other names fine. Do people have opinions on flag vs machine? +
 Kito: Meant as an option to consider, but believe flag is right thing to use now. +
 Jess: Just wanted to make sure other options were considered. Didn't mean we can't use a flag, but they are scarce, so should be sure it's the right thing, not just used because that's what the proposal says.
 
-= Vector ABI: Size and Alignment
+== Vector ABI: Size and Alignment
 
 Kito: Can align to either 128 bits or the element's alignment. For 128 bits, fractional LMUL values waste lots of stack space, and Zve32/Zve64 would waste 96/64 bits, so using lower alignment conserves space. Compilers can still overalign for performance. +
 Guo: Why do we need a new ABI? +

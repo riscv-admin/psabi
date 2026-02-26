@@ -2,7 +2,7 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Jeff Scheel, Anders Berg, Christoph Muellner, Jiawei, Philip Reames, Mark Himelstein, Philipp Tomsich
 
-= Status Update
+== Status Update
 
 Kito: Official public review started last week (14th July), will end next month (29th August). Currently no important blockers, please leave feedback if you think something needs addressing. +
 Mark: Please make sure ratification ready checklist is completed so there's no delay after public review. +
@@ -10,7 +10,7 @@ Jess: For regression testing, Zc is on the way and has an interaction with the p
 Mark: Most of the Zc stuff is not in RVA. I think it's worthy of a question to AR comittee about whether psABI needs to support it if Zc gets ratified this year. Please write up an email and ask them for advice. More general question, Zc is just an example. Also include non-normative note about the policy for future reference. +
 Jeff: AR item is not the review you've already had, it's a follow-up review post public review to check any changes since then. Shorter and quicker, but is a second one.
 
-= Unallocatable Global Pointer
+== Unallocatable Global Pointer
 
 Kito: MaskRay, main LLD contributor, wants GP to be an allocatable register rather than using for linker relaxation. ABI break so would need to be made compatible. Talking with Anders will apply to EABI as a deviation. +
 Philipp: Don't agree it's necessarily EABI. Should keep it in the background that it could be considered in future. Idea not unfounded, extra register always great. +
@@ -21,18 +21,18 @@ Philipp: Current wording says unallocatable, doesn't stop anyone from using it n
 Kito: Will have other potential changes to registers for future code models. +
 Jess: Such things are ABIs not code models, such as compact code model proposal that is a compact ABI.
 
-= Add the LP64E ABI to support RV64E
+== Add the LP64E ABI to support RV64E
 
 Kito: RV64E has been added to the ISA spec but there is no ABI defined. Palmer has proposed adding one based on ILP32E. Proposing deferring to after 1.0, anyone disagree? +
 Philipp: Want to get it done as soon as possible, reduces number of instances of this. Mark, what do you think, close 1.0 and maybe have a remedial 6 months later? +
 Mark: Difficult to get more than one a year. Agree with Philipp, let's not try to do anything else. When you send email to AR for Zc you should also bring this up.
 
-= Define _BitInt ABI
+== Define _BitInt ABI
 
 Kito: C32 has defined arbitrary-width integer type _BitInt(N). Implemented in Clang but not GCC. x86-64 has defined it, but I think we should merge after 1.0 release. +
 Philipp: C23 means only an official standard next year. Let's come up with a solution in parallel with ratification. Put pull request up as soon as we have it so people can see it.
 
-= Tag_RISCV_arch: PR 292
+== Tag_RISCV_arch: PR 292
 
 Kito: Tried to clarify the tag is for the minimum execution environment. Palmer has concerns about that breaking things. Clarified it's a matter of principle not changing definition. Can either just update definition anyway or add new tag stating it's the new definition. +
 Jess: To clarify, his concern is that binaries might have the wrong value for the tag but currently work because nothing bothers to check them?
@@ -44,7 +44,7 @@ Jess: Assuming understanding of his concerns are correct. Can you get him to jus
 Philipp: Before going on to EABI let's deal any other immediate issues for the current 1.0 work. Are there any blocking issues? +
 Kito: Not currently.
 
-= EABI
+== EABI
 
 Kito: Based on main ABIs with deviations, current proposal comes from IAR. Anders, do you want to talk about it? +
 Anders: Just an introduction, deviations not just for embedded applications, set of features for any. +

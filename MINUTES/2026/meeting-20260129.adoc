@@ -2,7 +2,7 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Zhi Zhuang, Ana Pazos, Atul Prathap, Bohan Lei, Chao-ying Fu, Craig Topper, Deepak Gupta, Jiawei, Jordan Jerome, Josua, Min Hsu, Pengcheng Wang, Petr Hosek, Philip Reames, Ruinland Tsai, Sam Elliot, Shihua, Simon Cook
 
-= CFI Update
+== CFI Update
 
 Kito: Giving an overview and update. +
 Kito: Landing pad and shadow stack similar to x86 (CET and IBT) and AArch64 (BTI and GCS). +
@@ -57,11 +57,11 @@ Jessica: Ok, so compatibility in one direction when mixing.
 Min: What is the issue with dlopen exactly? +
 Kito & Deepak: CFI enabled at program startup, dlopen happens later, so may need to retroactively disable.
 
-= Meeting minutes
+== Meeting minutes
 
 Last month's meeting minutes approved.
 
-= Other status updates
+== Other status updates
 
 Kito: Long list of updates since last meeting, been a while. For highlights, have open PR to reserve some relocations for CHERI (RVY), any comments? Otherwise will merge after meeting. Also one to update description for vendor relocation scheme, discussion about dynamic vendor relocations but so far not allowing, current scheme not quite right for it, so clarifying. Recent proposal about Linux-specific linker emulation, more of a linker implementation question so for toolchain conventions not psABI. New PR just created before meeting about R_RISCV_RELAX with (no)rvc. Sam I think you have one thing to mention too? +
 Sam: Sent message to mailing list, no PR yet, for opinions about using relocations to mark instructions that we want to be able to relax but don't otherwise need a relocation. Already have such a thing for TLS Local Exec on the add instruction, may want to for example do it for long branch sequences. More of a general question about this idea, not specific uses. Have more content but we're already over time so will leave for next time. Happy to open issue if wanted. +

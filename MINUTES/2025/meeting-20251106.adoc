@@ -2,41 +2,41 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Christoph Muellner, Ana Pazos, Chao-ying Fu, Craig Topper, Deepak Gupta, Isaac Chute, Paul Kirth, Philip Reames, Ruinland Tsai, Sam Elliott, Simon Cook, Petr Hosek, Petr Penzin
 
-= Meeting minutes
+== Meeting minutes
 
 Last month's meeting minutes approved.
 
-= TG reforming progress
+== TG reforming progress
 
 Ana: Kito presented charter at yesterday's TSC meeting, no objections raised. Now waiting for formal approval. After 6 months committed to providing progress update. Believe no further action needed from us.
 
-= Status update for CFI-related PRs
+== Status update for CFI-related PRs
 
 Kito: Sent out new version of glibc patches. +
 Deepak: Push-back from kernel maintainers re VDSO, don't want config option to always use CFI in VDSO in case Zimop not implemented. New version that will hopefully be merged.
 
-= Document [u]intmax_t
+== Document [u]intmax_t
 
 Sam: Various non-portable types like [u]int_fastN_t, non-portable because I believe it can vary based on compiler flags. Should document that they're not portable and so shouldn't be used in interfaces. But [u]intmax_t leaks into ABIs and should be specified; e.g. we specify max_align_t's alignment. +
 Jessica: Believe FreeBSD's definitions differ from Clang's, for example, would not be surprised if there are inconsistencies on other platforms too.
 
-= ABI for _BitInt
+== ABI for _BitInt
 
 Kito: Now have GCC implementation. Have added special rule for _BitInt(32) on RV64 so it matches int/int32_t. Would like to move forwards; any comments or objections?
 
-= Fixed-length vector calling convention
+== Fixed-length vector calling convention
 
 Kito: GCC patch has been merged. Some rewording needed for better English, but otherwise believe ready.
 
-= Empty unions and arrays of empty structs/unions
+== Empty unions and arrays of empty structs/unions
 
 Kito: GCC ABI fix has been merged, will be in next release, so issue is closed.
 
-= Initial big-endian specification
+== Initial big-endian specification
 
 Kito: Currently under review, need to take time for the calling convention.
 
-= Open discussion
+== Open discussion
 
 Kito: Paul, are you still interested in execute-only memory? +
 Paul: Yes, still plan to, just haven't had time to get to writing it up yet. +

@@ -2,17 +2,17 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Mark Himelstein, Anders Berg, Anders Lindgren, Christoph Muellner, Ibrahim Qashqoush, Jiawei, Jim Wilson, JojoR, Luis Marques, Philip Reames, Simon Cook
 
-= Status Update
+== Status Update
 
 Kito: Public review still has one week, ends next Monday. Received several issues, especially from LLVM community.
 
-= #334 Document the behavior of larger-than-type bitfields
+== #334 Document the behavior of larger-than-type bitfields
 
 Kito: Disallowed in C but allowed in {Cpp}. Standard defines semantics of extra bits. +
 Mark: If this is target-independent why do we need to specify it? +
 Jess: Standard specifies semantics but not specifics of the layout. Traditionally varies based on endianness, and MSVC differs from Unix compilers.
 
-= #325 Document how merge elf file headers and ELF attribute
+== #325 Document how merge elf file headers and ELF attribute
 
 Kito: Didn't previously document how to merge the attributes. Two important parts, privilege spec version and extension versions. GNU ld errors on mismatch for former, but too restrictive. Could deprecate attribute given ISA string can encode it. Thoughts? +
 Mark: Is this implemented? +
@@ -34,7 +34,7 @@ Mark: Shouldn't bend over backwards for things that don't conform to the spec. +
 Jess: Ideally yes, but in reality if you don't support this you won't support LLVM, and won't support files built by GNU toolchains older than around a year. So not useful/helpful to have a spec that doesn't say what to do here. +
 Mark: Can add a non-normative
 
-= #329 Clarify the detail rule of Tag_RISCV_arch
+== #329 Clarify the detail rule of Tag_RISCV_arch
 
 Kito: Currently underspecified. Should be lowercase, every extension should be separated with an underscore and should follow canonical order. However, ISA manual doesn't handle shorthand extensions (e.g. Zks = Zbkb + Zbkc + Zbkx + Zksed + Zksh). Would like to specify that if you specify all of them then the shorthand extension is added. Currently implemented in LLVM and GNU. +
 Mark: What's the plan for updates? Every year like for UEFI and SBI? +
@@ -48,18 +48,18 @@ Kito: Christoph has had some discussion here. +
 Christoph: Had a discussion on toolchains and runtimes mailing list. Suggestion from Krste to add it to ISA string. From toolchain side request to not define it too early, want to wait until it's ratified in case it ends up changing. +
 Mark: Agree, chicken and egg problem here.
 
-= Tag_RISCV_arch: PR#292
+== Tag_RISCV_arch: PR#292
 
 Kito: Discussed before. Didn't get details from Palmer. Think we should just merge this. +
 Mark: Are you waiting for closure from Palmer? +
 Kito: Jessica and I believe it's fine since it's compatible with the old implementation. Want to be sure there are no issues. Wanted to get Palmer's view of what the issue is, but didn't get one. +
 Mark: Rivos has a program manager working with RISC-V. Will send you intro, she can help you get closure with Palmer if you need it.
 
-= Process of Designing EABI
+== Process of Designing EABI
 
 Kito: Want to identify all possible deviations, discuss them in meetings, accept or reject them, then define how to implement them.
 
-= Present deviation sets?
+== Present deviation sets?
 
 Kito: Lots of flexibility from deviations. Freedom can cause issues for toolchains. Could define multiple presets to focus on and provide multilibs for. +
 Mark: Is this for this or next year? +
@@ -81,6 +81,6 @@ Mark: Third Thursday for the board meeting. Will be a lot of competition for res
 Kito: First thing to do is address all the comments, then go through AR. +
 Mark: Also need committee chairs sign-off. Can happen simultaneously.
 
-= Vector ABI
+== Vector ABI
 
 Kito: Would like vector calling convention in next release next year. Need data from benchmarks, and requirements, to inform its definition.

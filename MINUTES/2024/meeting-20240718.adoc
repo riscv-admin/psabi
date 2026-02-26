@@ -2,11 +2,11 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Ana Pazos, Elliott Hughes, Jiawei, Petr Hosek, Simon Cook, Paul Kirth
 
-= Status update
+== Status update
 
 Kito: Three CFI-related PRs updated. Also AMOAS, strengthening atomics, RELOCID for vendor relocations and large code model.
 
-= CFI-related updates
+== CFI-related updates
 
 Kito: Removed generic rule for program property, added description just for program property. Renamed simple to unlabeled scheme. Function signature based scheme now stable. Have GNU+LLVM PoC for non-standard labeling scheme (fixed label of 1). +
 Jess: How confident are you that you've found all the {Cpp} corner cases, and that future versions of the standard won't introduce new ones that break the current scheme? Also, other architectures presumably have the same problems here, so has there been discussion with them? +
@@ -18,29 +18,29 @@ Kito: Think it needs LTO, but only limited to kernel, and maybe not {Cpp}? +
 Jess: Believe it did {Cpp}, remember an issue on AArch64 I had to help untangle where va_list was mangled differently and the fix was backwards. +
 Elliott: Android does both KCFI and CFI, and is mostly {Cpp} in userspace.
 
-= #445 AMOCAS mappings for C11 memory model
+== #445 AMOCAS mappings for C11 memory model
 
 Kito: Proposed mapping from Zacas spec is not compatible with A6C/A6S mappings. Patrick has added notes to fill the gap. Note that issue doesn't affect current atomic code generation, only with Zacas. +
 Jiawei: What about Zabha? +
 Kito: Different extension, but not sure about this. +
 Jess: Is the question just if there are similar concerns? If so shouldn't be, same as already exists for word, not adding new kinds of atomics, just widths. Ignoring mixing atomic widths, of course, which is a whole separate can of worms for formal semantics.
 
-= #388 Large code model
+== #388 Large code model
 
 Kito: Last call for feedback, will merge this week otherwise.
 
-= #423 Add RELOCID for vendor-specific relocations
+== #423 Add RELOCID for vendor-specific relocations
 
 Kito: Had some more feedback, but kind of stable, waiting to move vendor ID table to toolchain-conventions.
 
-= Release plan
+== Release plan
 
 Kito: Wanted Christoph for this. Target for 2.0 release is end of this year, with whatever we have. Going forwards, maybe aim to have yearly release? Also, can we use the same charter as before, or do we need a new one?
 
-= Stack frame layout for \__riscv_{save,restore}_N
+== Stack frame layout for \__riscv_{save,restore}_N
 
 https://github.com/riscv-non-isa/riscv-toolchain-conventions/issues/35
 
 Kito: Currently don't specify the frame layout for the save/restore libcalls, though in practice for non-E ABIs the implementation is the same between GCC and LLVM, and considered stable. However, for E ABIs, not currently consistent, and needs to be known to emit the right unwind info in the caller. Need implementations and toolchains to agree, and need to specify it somewhere since there needs to be this agreement. Personally agree with Sam's comment for E.
 
-= Open discussion
+== Open discussion

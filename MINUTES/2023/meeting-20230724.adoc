@@ -2,29 +2,29 @@
 
 Attendees: Kito Cheng (chair), Jessica Clarke (co-chair), Luis Marques, Petr Hosek, Craig Topper, Elliot Hughes, Hans Boehm, Jiawei, Keeran Rothenfusser, Lehua Ding, Philip Reames, Shihua, Simon Cook, Tatsuyuki Ishi
 
-= Status Update
+== Status Update
 
 Kito: Various new PRs.
 
-= Atomics
+== Atomics
 
 Kito: Initial spec merged. TSO mapping proposed by Patrick (Rivos). Dropped spec for soft atomics (non-A cores) for now until agreed on standard mapping; LLVM has 2, GCC has 1, all different.
 
-= ePIC
+== ePIC
 
 Luis: Not much changed since last time. Command-line options out of scope for psABI but of interest. For rewriting rules, looking for opinions on how best to specify. For %epic_base_add / %epic_lo question of whether to indirect like %pcrel_lo or not. Linker relaxations are specified but differ from compact / large code model proposals. +
 Kito: Current PR adds a standalone document. Can you make a version that extends the current document instead? +
 Luis: Done that way to add context, but can extend the existing document instead. +
 Kito: Could put context as appendix.
 
-= TLSDESC
+== TLSDESC
 
 Tatsuyuki: Spec almost considered finished. Not had enough time to make much progress on prototype. Have relaxation prototype almost working with mold. LLVM prototype from Google, but no LLD prototype. Should have plan in August to finish GNU toolchain prototype. Plan to finish prototype first, but could merge spec early. +
 Kito: Current policy requires GNU or LLVM prototype before merging. MaskRay was interested in TLSDESC, could ask if he wants to help out for LLD. Does Google have a timeline? +
 Elliot: Definitely interested in. If there's a bug open please point me at it. +
 Petr: Paul looking into LLD right now. Planning to sit down with MaskRay to figure out what exactly is needed. Hope to make progress in the next couple of weeks.
 
-= 64ILP32 - ILP32 on RV64
+== 64ILP32 - ILP32 on RV64
 
 Shihua: Have RV64 ILP32 prototype on Linux kernel. Saw +8.4% for CoreMark on D1. +
 Kito: Have you tried SPEC 2006? Remember x86 ILP32 showing significant performance improvement there. +
@@ -36,7 +36,7 @@ Jess: Right, so the number is misleading, it's not measuring what you think it m
 Guo: Working on getting more benchmarks working to see what the performance is. Next time may have more to share. Traditional ILP32 keep registers 64-bit, but want to make them 32-bit to reduce stack usage. Also want Sv32 on RV64 to reduce page table size. +
 Jess: At that point you should just use RV32. It's crazy to add an extension that allows you to treat RV64 as RV32. That extension exists, and is called RV32. Don't hugely like the idea of treating the registers as 32-bit, either, will then have multiple ILP32 on RV64 ABIs and that doesn't sound good, but can at least see the argument.
 
-= Vector Calling Convention
+== Vector Calling Convention
 
 Lehua: Current proposal has v0 and v8-v23 for argument / return value registers, v1-7 and v24-v31 as callee-saved registers. For calling convention need callee-saved registers to be preserved across calls, and functions need to be annotated with .variant_cc. Have GCC and Clang/LLVM PoCs. Need review, and to show that callee-saved registers have use. +
 Lehua: Vector argument registers allocated in a first fit manner; means later arguments can use earlier registers to fill in gaps left behind. +
@@ -58,15 +58,15 @@ Philip: Agree it works, concern is whether you get enough of the benefit of call
 Jess: One possible outcome is it's the worst of both worlds; vector code has to restrict register allocation for saving, and non-vector code can't take advantage of the callee-saveds. +
 Philip: Maybe can split the proposal into two pieces: part that doesn't do callee-saveds, and a second one that explores the benefit of an alternative convention with callee-saveds and how to make it work well. May be adding complexity, but want to see if we can separate the two procedurally and let the first part move forward.
 
-= R_RISCV_RELAX Issue
+== R_RISCV_RELAX Issue
 
 Kito: Issue when using different ISAs; see GitHub.
 
-= Vector ABI: Size and Alignment
+== Vector ABI: Size and Alignment
 
 Kito: Proposal to add vector tuple type and vector type for f16 and bf16. Positive feedback from both toolchain communities. Will defer to after calling convention discussion.
 
-= Large Code Model
+== Large Code Model
 
 Kito: Andes have proposed large code model. Uses constant pool like AArch64. +
 Jess: AArch64 can also use bit insertion instructions to synthesize the address, which I believe GCC and LLVM use by default. Worth discussing this in the context of PIC, especially whether this is large data or large code (latter is much harder for PIC).
