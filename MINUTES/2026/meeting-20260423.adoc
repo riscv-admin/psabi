@@ -1,0 +1,70 @@
+= psABI meeting 23rd April 2026
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Ana Pazos, Bohan Lei, Craig Topper, Jiawei, Josua, Luke Zhuang, Min Hsu, Heinrich Schuchardt, Petr Hosek, Sam Elliot, Simon Cook, Valentin Haudiquet, Xu Dandann, Simon Cook, Vijay Ganesh, Wei Wu
+
+== Meeting minutes
+
+Last meeting's minutes approved.
+
+== CFI update
+
+Kito: Found yet more bugs in testing glibc patch set so still not sent out new version. Believe now resolved, but still testing it's stable. Most other PRs unchanged. For MOP encoding, LLVM support merged, need implementation for GNU toolchain.
+
+== Function alignment
+
+Kito: Someone has asked about instruction to use for function alignment. Currently LLVM and GNU both use 16-bit zero, i.e. c.unimp, instead of c.nop. Don't believe anything to change here in the end.
+
+== Relaxing traditional TLS GD
+
+Kito: Proposal to support relaxing TLS GD, as TLSDESC not yet supported in glibc. Consensus is effort should be put into supporting TLSDESC more widely rather than improving traditional TLS GD. +
+Luke: Agree TLSDESC is higher priority and will work on it. Originally proposed it because we may have users who don't want to update their glibc version, and relaxation does not depend on glibc version, only toolchain version. Currently working on TLSDESC but may still be worth improving TLS GD.
+
+== Bare-metal ePIC-like code model
+
+Kito: Was an ePIC proposal several years ago, ended up getting stuck and abandoned. New similar proposal to do ROPI/RWPI-like ABI; PC-relative access for code, GP-relative access for run-time data. +
+Sam: Hoped proposer would have been here to discuss it. I made an ePIC proposal a while ago, this is probably a better version of that. Also had FDPIC proposals in the past. Difficulty with ePIC is there's a lot of entry-level ABI work before it can get into toolchains. Also with Arm had many different embedded ABIs, don't want to end up in the same place, want to have the few that will actually be used. Difficulty is few people actually will use ePIC, and those that might have been doing fine without in reality. Can't really justify having two of these, still hard to justify one. Seems doable, and feels most promising one, but do need to have people using it to be able to specify it. C linkage model not helpful for telling you what segments things will end up in, but this seems to have solutions to that. Probably the best we can do without PLTs. +
+Kito: In Qualcomm's scenario do you have a special code model? +
+Sam: Not at the moment. Have had people in the past ask for ePIC, mostly people transitioning from other architectures, and seemed fine in the end not having it. Code model lies somewhere between large and medany; code and data each can be larger as now separate, and can be at far apart locations. Should work on inviting them to have proper discussion. +
+Kito: Anyone else here interested in this? +
+Petr: At the LLVM embedded workshop there was interest in these kinds of code models, in particular FDPIC. Useful for Linux without an MMU. Even on Arm these things aren't supported by LLVM. So share concern about whether it's needed and worth supporting despite people asking for it. Even if we just do ROPI/RWPI, can still extend it to FDPIC. +
+Kito: For history, in the past ePIC was moving forwards, but people pointed out it was a subset of FDPIC, so we should do that. +
+Jessica: One of those people was me. Think it was less saying we should just do FDPIC and more making sure that ePIC could be extended to FDPIC, rather than being its own thing that would have to be supported separately.
+
+== TLSDESC saving vector register state
+
+Jessica: Was working on implementing TLSDESC on FreeBSD, using arm64 implementation as reference. Noticed some bugs there and got curious about how SVE works. Found their ABI treats vector state as clobbered by resolver, although LLVM does not honour this. Then checked our spec and saw we regard V state as preserved. For lazy binding we deemed this a problem, as expensive to save register state, and may not have stack space. Similar issues here. Believe this to be the wrong decision, rare to be mixing vector and TLS. Changing it would be an ABI break, though believe nothing as of yet supports both? +
+Paul: Dynamic linker might end up using vector registers. In Bionic for Fuchsia we just save everything and things seem fine. Not sure how you'd handle them being clobbered given TLS isn't really a function call. +
+Jessica: This is the ABI used on Arm. On GCC implemented correctly, on LLVM currently not, filed a bug about this, seems nobody noticed until now. So not sure how hard it will be to implement in LLVM, though Arm will have to figure out, so we're no worse off than them. +
+Luke: Already have a prototype patch for this, believe not difficult. Will post soon. +
+Kito: That would be great. Would support this. +
+Paul: Fuchsia is fine, we can change the ABI. For Android, probably fine, don't think it's really being used yet, not aware of devices being shipped. Fuchsia doesn't even support traditional TLS GD, Android will go that way eventually. +
+Kito: Should speak to enh then to check the Android side is ok.
+
+== Add new relocations for global array accesses with non-constant indices
+
+Kito: Liqin as proposed new relocations for relaxing lui+addi+add+load. Current naming is a bit confusing, have proposed alternative naming. Will also need medany, i.e. PC-relative, versions, and c.addi version. Have PoC for LLVM and binutils. +
+Sam: Feels like one of the first relaxation marker relocations that I'd talked about before. Seems like somewhere we can be more efficient, so seems reasonable.
+
+== Relax feature string
+
+Kito: Closed issue since we've gone back to previous mapping symbol-based approach. Started to implement for LLVM. GNU implementation already exists from Nelson a few years ago.
+
+== Big-endian
+
+Kito: Starting to review GCC patches. Have not yet done another round of review for psABI spec PR.
+
+== OpenMP vector function name mangling
+
+Kito: Wasn't clear for functions mixing data width, now updated, believe ready to go. Need PoC now.
+
+== RVY
+
+Kito: Have a couple of RVY-related PRs. Not my area, Jessica do you want to talk about them? +
+Jessica: Can start with second one as it's simpler. As with any ABI, need a way to differentiate it in the ELF file. Downstream done with a flag bit, so propose doing the same upstream. Longer-term may want a gABI change to have a machine-independent representation of CHERI vs non-CHERI, just as you can tell 32-bit vs 64-bit today via ELFCLASS32/64. Doesn't change file format, but does change representation of pointers in things like GOTs, and currently end up with machine-dependent macros in places that don't previously need them. +
+Jessica: First change is, as labelled, a draft. New ABI with a new data type means we need a different calling convention, which this proposes. Appreciate this kind of text is hard to review, especially if not familiar with CHERI. Passing things in register pairs gets more complicated, now we have three different types that can be part of such pairs, integers, floating points, and now capabilities, so combinatorics makes it more complex. +
+Sam: Understand there's a difference between CHERI being standardised and CHERIoT. How would that be handled here? Also I gather there are multiple encoding formats, are you trying to capture that? +
+Jessica: CHERIoT v1 as it stands today was frozen and taped out as a custom extension prior to any ratified RVY. Intent is that a CHERIoT v2 could be built based on RVY. Will need something to disambiguate, but not clear what that would be as it doesn't yet exist. Some parts may end up being custom extension still, so can represent it as such. Not clear what will end up getting ratified, complicated by RISC-V politics. So trying not to answer that question now, will deal with it as and when it comes up. On the encoding format side, RV64 will have just the one format, intended for application-class cores with binary distros where you can't mix and match. For RV32 proposing one standard format, but metadata doesn't scale so well to 32-bit so harder to cram everything in and you have more tradeoffs to make. Anticipate vendors wanting to have different formats, including CHERIoT. But again don't yet know what that will look like, so for now starting with the simple case needed for RV64Y and can figure out what to do with more complex cases later. +
+Sam: Will still have custom reserved flag bits, so could have RVY plus a custom bit. +
+Jessica: Yeah. And if vendors need more space, can have custom flags mean to go consult some other section. +
+Kito: Made a comment on the PR. Know you have LLVM implementation, but not GNU, so would need a waiver for that requirement? +
+Jessica: Yes. Arm did an alpha port of GCC, I think a 10.x, for Morello. Sounded like they got quite far, but don't know exactly, we never used it ourselves. But against an old version and only Morello, so would need adapting for RISC-V. Nobody working on that, so wouldn't happen in the near future. Does anyone currently think they see that as a concern, out of interest? (None raised)
