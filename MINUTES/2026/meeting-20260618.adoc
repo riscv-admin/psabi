@@ -1,0 +1,57 @@
+= psABI meeting 18th June 2026
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Ana Pazos, Paul Kirth, Christoph Muellner, Craig Topper, Jiawei, Joshua, Luke Zhuang, Petr Hosek, Simon Cook, Tom Gall, Xu Dandan, Sam Elliott
+
+== Meeting minutes
+
+Last meeting's minutes approved.
+
+== CFI update
+
+Kito: On glibc side, v4 patch sent out, plan to send v5 with some minor changes. On toolchain side for unlabelled scheme, binutils patch now landed, and LLD review in progress. Now deprioritised within SiFive so may not be working on it as much.
+
+== Other minor changes
+
+Kito: Merged a formatting fix PR (#503). Also merged #501, not a bug fix, but clarifies for RVY where XLEN and pointer size no longer the same.
+
+== TLSDESC calling convention change (#496)
+
+Kito: For TLSDESC calling convention, spoke to Android folk, they are happy so believe ready to go. Any other comments? Jessica will need your approval on the PR per our process.
+
+== New relocation type for global array accesses (#489)
+
+Kito: Li Qin has renamed the relocation to be less confusing. Also now working on medany support, since currently only supports medlow.
+
+== Mapping symbol for R_RISCV_RELAX relocations (#393)
+
+Kito: Old PR to deal with mixing RVC and non-RVC code. Recently SiFive's customers have been reporting such issues, so returned to this. Provided PoC for LLVM and LLD.
+
+== Big-endian support (#470)
+
+Kito: Andrew and I have each given another round of review. Mostly ready now, so want to merge as an experimental ABI. Will wait another round of meetings.
+
+== OpenMP vector function name mangling (#455)
+
+Kito: Approved, so please comment if you have feedback, otherwise intend to merge.
+
+== Pure-capability calling convention for CHERI/RVY (#499)
+
+Kito: Also given another round of review. Two major review comments. t0 is used in first entry of PLT but also as extra special argument register. +
+Jessica: Intend is to support lazy binding. Don't think this is the register used in the PoC. Will need to chat to Alex to figure out what's going on here.
+
+Kito: Second issue is around hard float calling convention. Think some work needed on the wording. +
+Jessica: Yeah, intent is any pair of XLEN integer, YLEN capability, and ABI_FLEN floating-point will be passed in registers. Complexity in specifying is why we never wrote down our calling convention in the past.
+
+Kito: Also approved #498 to reserve an EF_RISCV_RVY e_flag bit, intend to merge so please comment.
+
+== Addend for R_RISCV_GOT_HI20 (#188)
+
+Kito: Old PR, all agree addend should be zero. Currently G+GOT+A-P which is odd, A will advance it to point at another GOT slot, so should just be G+GOT-P. binutils will error since 2021, whilst LLD will add the addend, but has no test for it. ELD follows the spec as written. Should merge this. +
+Sam: Thanks, yeah, this came up in ELD and we were confused. +
+Jessica: Useful behaviour would be to include the addend in the GOT entry, but that's awkward to implement.
+
+== ABI for riscv_rvv_vector_bits (LLVM #203601)
+
+Kito: Generally disallow scalable vector passing, but fixed length in this case, so should probably allow it. Craig? +
+Craig: Not much to add other than that it should improve performance for these types. +
+Kito: Seems right to me but currently no ABI specified for this. Will prepare PR to document, should follow VLS calling convention.
