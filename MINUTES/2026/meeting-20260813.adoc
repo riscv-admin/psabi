@@ -1,0 +1,83 @@
+= psABI meeting 13th August 2026
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Ana Pazos, Bohan Lei, Craig Topper, Jiawei, Joshua, Luke Zhuang, Min Hsu, Petr Hosek, Rafael Sene, Sam Elliott
+
+== Meeting minutes
+
+Last meeting's minutes approved.
+
+== psABI 2.0 mid-point update
+
+Kito: Have prepared some slides, would like a quick review, will propose for next TSC meeting. +
+Kito: Promised some items, mostly complete except CFI. Also mentioned big-endian in charter but not promised, would like to merge it now as experimental ABI, but to discuss later. Other work not in charter but in progress are RVY (CHERI) and global array access optimisation. +
+Kito: Proposed schedule has Sep 30th for feature complete, Oct 1st for internal review, Nov 1st for public review, Dec 1st for ARC review and 2027Q1 for release. +
+Rafael: Quick comment, public and ARC review are in wrong order. (Now flipped in slides) +
+Kito: RVY may miss psABI 2.0. AME/VME discussion not started. +
+Jessica: Should change that to say just started as AME issue filed today. +
+Kito: Should do something minimal for now but not rush to define new calling convention for 2.0. Long instruction TG may also need new relocations. Sam? +
+Sam: Still very early, haven't even got to instruction definitions yet. Fear it may end up needing a new code model to achieve some of their goals. +
+Ana: Is there anything that needs to be changed in the ABI for the far jumps?. +
+Sam: Will be some issues, filed an issue today. Instructions have come out of ARC directly not the TG. Should just be new relocations and relaxations, key thing is to provide feedback so it's something that's possible to relax to. +
+Kito: Current proposal is still using 32-bit instructions, not long instructions? +
+Sam: Yes, Zijf is intended to always be 32-bit instruction. TG may also create 48/64-bit long jump instructions, tradeoff there now different with existence of far 32-bit jumps. +
+Kito: Should mention Zijf here then, and should aim to have in 2.0. +
+Ana: May be worth contacting fast track chairs so they know to talk to psABI. +
+Sam: Andrew Waterman one to contact there. Draft PR against the ISA spec I commented on, not sure how settled the encoding is. +
+Kito: Any other comments for this schedule? +
+Jessica: On the RVY front, almost guarantee won't be a full spec by Sep 30th, but that's completely fine and expected, will be there when it's ready.
+
+== CFI update
+
+Kito: Been around for a long time now, trying to cross it off now. New glibc v5 patch sent, few changes this time, hopefully will land. Both binutils and LLD landed. Would like reviews for PR #417 to land. Function signature work remains pending. +
+Sam: Does that mean labelled scheme might miss 2.0 ABI? +
+Kito: Yes, unfortunately. Still various unresolved issues. Would like to finish it, lots of time spent on it.
+
+== Zijf (#512)
+
+Kito: As already mentioned, Sam has submitted a PR for this. +
+Sam: At a high level, extension has jump and jump-and-link instructions, with no register operand. Will need a new relocation for JF. For JFAL, instead of expecting compiler to emit it, would only do so as part of relaxation from normal call. Main issue preventing progress is encoding not yet being fully decided. Discussion about offset alignment being 4 not 2 but tyring to kill that, has issues with relaxation. Also similarly for target alignment. If LLVM can't use JAL to get somewhere it uses AUIPC+JALR with a CALL_PLT relocation, currently don't actually guarantee that doesn't use a PLT, should probably specify that somewhere. +
+Jessica: Presumably in part because other architectures don't always distinguish between types of jumps. +
+Sam: Should specify for local non-function symbols or something like that. +
+Jessica: Probably restrict to the same input section, otherwise would have issues if you ever want thunks. +
+Sam: Think ELD doesn't bother with this optimisation currently. +
+Craig: Presumably would need ISA string to know whether you can perform this relaxation? +
+Jiawei: For Zijf, can you add a compressed form? +
+Sam: Left out JF to compressed jump, but could do that relaxation. Don't expect JFAL from the compiler currently so should not need to define that relaxation, but could add if we add a relocation to allow that compiler output. Expect compiler to still emit AUIPC+JALR which can get relaxed to compressed forms as today. +
+Jiawei: Would a c.jf/c.jfal be useful? +
+Sam: Already have c.j and c.jal, one RV32-only, wouldn't expect a need for more.
+
+== Using mapping symbol for R_RISCV_RELAX (#393)
+
+Kito: Have GNU and LLVM implementations. This should cover the above Zijf case. Will ask people to review this, need to move this forwards. +
+
+== Deprecate Tag_RISCV_arch (#511)
+
+Jessica: Originally added with intention of capturing extensions required for binary to run. Request from down on high that we encode this so loaders would look at it and reject binaries not supported by current system and give nice error message, rather than crash with illegal instruction. Unfortunately, not defined in a loaded section, so not as easily available at run time. Moreover, putting -march string in it is insufficient, due to custom dynamic dispatch with different compiler flags rather than function multiversioning. So tag ends up being a potential superset of what's required, and thus doesn't capture original intended purpose. And never checked by any operating system runtimes, only I think some emulators to guide what to enable. Then only remaining use was guiding what extensions to enable for objdump, in particular for conflicting extensions like F vs Zfinx, because you can't just enable all extensions like some other architectures. But these days we have mapping symbols for that, which give more precise control, and in theory could even let you mix F and Zfinx code in the same binary, whilst still correctly disassembling it. Though currently we forbid that case, even though there are legitimate uses for it. So seems like implementation complexity with all the merging rules, that restricts legitimate uses, and doesn't provide the information it was originally added for. So posted this to poke the bear and see if this is a thing we want to keep doing. +
+Kito: For function multiversioning won't pollute this string. +
+Sam: If calling cross-object, the callee may have been compiled with different flags. +
+Kito: One useful case is under emulators, will automatically configure. Also if user gets illegal instruction could check attributes, but could be replaced by mapping symbols. +
+Sam: Definitely see the convenience of it. Weirdness about LTO on the LLVM side. Not sure valuable spending time fixing it if only really used by people pre-setting QEMU options. For our cases not using dynamic dispatch, might be different for people using glibc. +
+Sam: Our build attributes defined based on AArch32 ones. AArch64 ones since defined, and much more careful about what's there. Believe basically just a copy of .gnu.properties. Also a lot harder post-linking to understand original user intent. When I was at Arm, talking about "unconditional use", but next to impossible to detect when something is unconditional in practice. +
+Kito: Not rushing to make a decision here, let's leave open so others can comment. +
+Jessica: For 1.0 believe we naively thought everything would be covered by target attribute, but in reality not the case.
+
+== AME calling convention (#513)
+
+Kito: Current conclusion is to mark all caller-saved like vector, and can add new one like for vector if needed. Could also look at Arm's SME, have some new keywords. +
+Sam: Already a proposal for that in the C API doc. Think some slight differences compared with Arm's. May end up wanting to treat it separately to calling convention.
+
+== Global array access optimisiation (#489)
+
+Kito: Was wanting medany too but for 2.0 may just do medlow. PoCs already exist that should meet requirements. +
+Jessica: On the medany front, not sure it's needed to rush. Not one of the things required for 2.0, so can just wait and do it properly. And whether it's in 2.0 doesn't matter, once merged we all agree it's official. Can even promise not to change the relocation encodings if people want to start using it.
+
+== Big-endian (#470)
+
+Kito: Not many people here who care. Think should move forward and merge as experimental ABI like RV64ILP32, so can still change in future. +
+Sam: Landing as experimental probably way to unblock it. Believe LLD implemention stalled, potentially indefinitely, due to not maintainer not wanting to support it without users to justify it. What's the binutils status? Oh, I guess already supports it. So should probably merge, LLD may or may not support it. +
+Jessica: Should make sure Andrew is happy with it first though.
+
+== OpenMP name mangling (#509)
+
+Kito: Merged but GCC community gave strong feedback, wanted to use fewer letters as don't need to be human-readable. +
+Jessica: Think that's ok. Wish they'd given that feedback before but should be ok to change. Better to do it sooner rather than later though. Presumably they're the only implementation of it too.
