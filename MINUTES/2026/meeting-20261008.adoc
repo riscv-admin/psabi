@@ -1,0 +1,79 @@
+= psABI meeting 8th October 2026
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Ana Pazos, Jiawei, Craig Topper, Luke Zhuang, Petr Hosek, Sam Elliott, Simon Cook, Valentin Haudiquet, Dandan Xu, Joshua
+
+== Introduction
+
+Kito: Will be starting to ask for internal review on the way to a release. Needed if we want to meet timeline. Will merge a few PRs after this meeting then publish a release candidate.
+
+== Meeting minutes
+
+Last meeting's minutes approved.
+
+== CFI update
+
+Kito: Last meeting mentioned unlabelled support mostly merged, would like to move forwards with the ABI PR. Unless any last comments, will merge after the meeting. +
+Sam: Think that needs to move forwards. Uncontroversial compared to some of the others. +
+Kito: Yeah, been stable for a while. Will merge after.
+
+== Zijf (#512)
+
+Kito: Not much update here. +
+Sam: Yeah, still waiting to see if they're going to update the Zijf ISA proposal. Provided this to give some clue as to the ABI that we'd look to adopt. Think jump-far-and-link is only a relaxation target, so no relocation, whilst jump-far may be emitted by compilers for long branches and thus need a relocation. Haven't yet gone through the smaller instructions to figure out all the relaxations. Primary purpose is to flag to architects what the compiler would and would not emit. No fundamental progress, but not down to us. +
+Kito: Will be missing merge window for psABI 2.0, but don't think Zijf itself will make much progress by then, so probably fine. +
+Sam: Been various complex proposals about how you could re-encode the immediate to get larger ranges, but that needs care, e.g. requiring target alignment, which may interfere with relaxation.
+
+== Deprecate Tag_RISCV_arch (#511)
+
+Kito: Not much talk about this since last time, and also won't make 2.0 release. In LLVM community have had bug reports regarding merging, made me reconsider this. +
+Jessica: From my perspective was not expecting it for 2.0 at this point, if consensus for it would be start of 3.0, not last minute in 2.0. +
+Sam: Even within LLVM think we have some tooling lacking in using mapping symbols. Believe LLDB doesn't use them, for example, as I think the changes you added for objdump are only for objdump, not shared. Probably don't want to deprecate until the tooling is updated. +
+Kito: Suspect GDB has similar issues as well. +
+Sam: LLDB only recently got ability to Tag_RISCV_arch, even. Also stripped binaries may not have mapping symbols. +
+Jessica: Think the issue I wrote mentioned that, I at least remember thinking about it. Kito and Sam, can you please comment about the LLDB/GDB/etc situation so we're tracking before we do any deprecation?
+
+== Big-endian (#470)
+
+Kito: Know we've discussed this a bunch of times in the past. Wanting to include it in 2.0, so would like to give one last chance before I merge it. Will still be an experimental ABI in the spec.
+
+== Internal review
+
+Kito: Plan to merge CFI and big-endian PRs already mentioned, then tag a 2.0-rc0 and send out mail requesting review. A week behind original schedule. Afterwards will submit for ARC review. +
+Sam: Think there were some discussions about CFI on the LLVM discourse in the past month, Jessica was also on the thread. +
+Jessica: Oh, this was the indirect branch stuff? I remember being confused by that thread, not sure if there's anything to take away from it. +
+Sam: Something about returns twice functions, but think it was only for the labelled scheme, which isn't being merged here.
+
+== Request for candidates
+
+Jessica: Call for candidates went out a week ago, which seems like strange timing given we're about to go into the review process. Is that something that we should actually be doing, or should we talk to RISC-V admin people about deferring that until we've got 2.0 out the door? +
+Kito: Yeah, I assume the election won't give a surprising result, but should email asking for a waiver given we're in the release process. I will send that. +
+Jessica: Also happy to write it, I know it's late for you now. +
+Kito: Ok, thanks. +
+Sam: Rafael is the person to speak to. Or help@riscv.org, then everyone sees it. +
+Jessica: Yeah, I'll send to both.
+
+== Save/restore routines for use with shadow stacks
+
+Sam: Shadow stacks compatible with save/restore, entire protection gets lost, because save/restore routines do not have shadow stack operations, and the restore routines restore the normal RA and jump to it. Done a fix in LLVM for this, don't know about GCC, presume it has shadow stack support. +
+Kito: No. +
+Sam: Well that makes it easy then. At the moment we just disable using the restore call when you have shadow stacks, neither software nor hardware variants will work. Fixed, but only by disabling the use of the restore routines. Do we want to move this common sequence into the return routines? If so, how do we make sure the save/restore routines you're using are compatible? With hardware variant, could at least use GNU properties. Nothing like that for software variant. Effectively, proposal here is to change the names to include hardware and software variants, turning it into a link error, that probably ends up being Google-able, and can always turn off save/restore. Sounds like we're going to have the same issue with libunwind which has too many entry points, and we're not going to want to do this, instead adding a GNU property for software shadow stack. Discovered various issues doing this, e.g. they should be hidden symbols so you're not calling them cross-object. Also have documentation about the tailcall versions, but never landed upstream for either toolchain, and LLVM patch links to an old Phabricator one. Summarising discussion, feels like we don't want to change the name, but we do want things to be marked. Hope things like libunwind don't turn out to be like Arm, where they had to add a letter in the personality for one of these things, but can't remember if it was PAC, BTI or shadow stacks. +
+Jessica: Definitely libunwind additions for RA signing. Haven't seen anything for shadow stack, but only seen older versions that predate GCS. +
+Sam: Yeah, I left Arm before they did the libunwind GCS, but know there were issues in the past at Arm tracking down all the copies of libunwind in Android and getting them updated. For hardware shadow call stack, more shareable due to being usable with just Zimops available, but for software shadow call stack, less shareable. Whatever happens with libunwind are at least orthogonal to save/restore. Also don't know how many libc implementations are handling it in setjmp/longjmp. +
+Kito: Curious about your uses of this? +
+Sam: We definitely have shadow stack variants in our toolchain, but don't know how much of their runtime they're writing themselves. Our users are also embedded-focused, so less likely to be using libunwind. But more likely to be using save/restore. Also unclear of if we're advocating for it in Linux distros? +
+Jessica: Would hope full-fat glibc-based distros wouldn't, unlikely to perform well. But more embedded-focused yocto-y/musl-y distro might?
+
+Sam: Currently nothing about GNU properties in the psABI document. Once you've landed the CFI PR that adds it I can propose adding one for software shadow stack. But let's not promise this for 2.0, too late in the release window.
+
+== Open floor
+
+Sam: Don't know if we've written down when a CALL_PLT does or does not get a PLT entry. PLT entries borrow temporary registers. If we have a long branch within a function we can end up using one, but don't want to be using such an entry. Couldn't see anything in the gABI either. Now that we have just the one relocation, should have text about this. +
+Kito: Can you file an issue for this? +
+Sam: Was thinking of writing this up as a PR, though don't know if this is actually something we want to specify. +
+Jessica: Should be non-controversial to guarantee it for CALL_PLTs against non-preemptible symbols in the same input section. Beyond that not sure there's a good reason to try and restrict things. +
+Sam: Except save/restore builtins do that. +
+Jessica: Oh, because of t0. Maybe should use STO_RISCV_VARIANT_CC, rather than trying to add more cases. +
+Sam: I'll write up some text and we can iterate on that. +
+Kito: Used to have separate CALL and CALL_PLT. +
+Jessica: Yeah, but we adopted CALL_PLT for everything because CALL was just weird and broken, especially when you mixed them, whilst CALL_PLT worked for all cases we cared about. Would be convenient to be able to define CALL as what we now need for this special case, ensuring there's never a PLT, but think that ship has sailed and we don't want to go there now. +
+Sam: Agreed, don't think there's point in undeprecating CALL. Just need some language about when you can assume there won't be a PLT.
