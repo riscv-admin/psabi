@@ -1,0 +1,79 @@
+= psABI meeting 5th November 2026
+
+Attendees: Kito Cheng (chair), Jessica Clarke (vice-chair), Bohan Lei, Craig Topper, Jiawei, Luke Zhuang, Joshua, Min Hsu, Simon Cook, Sam Elliott, Mark Zhuang, Paul Kirth, Petr Hosek, Wei Wu
+
+== Introduction
+
+Kito: Not too many things today, focused on internal review. +
+Kito: One small update before we start, Sam is now the voting member for Qualcomm, instead of Ana.
+
+== Meeting minutes
+
+Last meeting's minutes approved.
+
+== Deprecate Tag_RISCV_arch (#511)
+
+Kito: Haven't yet updated anything on the GDB side. +
+Sam: Know we can't deprecated it until things have properly adopted the mapping symbols. Have a list of some tools. Don't know what the timeline for LLVM's remaining tools is.
+
+== Update Zalasr approval status (#521)
+
+Kito: Current psABI spec says a future extension will support load-acquire/store-release, but Zalasr has since been ratified. May also need to update table, LLVM and GCC both use the extension. +
+Kito: Also raises an interesting question around RVI policy for LLM usage. Not sure RVI has a policy around it. Not sure if anyone is aware of RVI policy? +
+Sam: Haven't seen anything.
+
+== PLT rules (#520)
+
+Kito: Sam created this PR, looks generally in good shape, but a few comments. +
+Sam: Yeah, didn't do IFUNCs, and not sure about the input vs output section restriction. +
+Jessica: Output section would preclude range-extension thunks like AArch64 has, think those end up in the same .text output section. For save/restore libcalls wouldn't help, but STO_RISCV_VARIANT_CC might suffice. Doesn't guarantee no PLT entry, but does avoid lazy binding, so only registers used by the entry would be clobbered. Think it's just t0 we care about, which isn't clobbered? +
+Sam: Other key case we care about is long jump within a function. +
+Jessica: Input section restriction would catch that though. +
+Sam: Also not sure about hot/cold splitting. +
+Jessica: Worth looking at how other architectures implement that. +
+Sam: Don't mind if this doesn't make 2.0. Worth leaving open for a bit.
+
+== COFF relocations (#522)
+
+Jiawei: If we want compilers to generate standard COFF object files rather than link ELFs and convert, need specification for relocations in relocatable object files. But also agree with Jessica's comments about ownership of PE/COFF specification. First goal should be to define scope and ownership of work, not immediately define relocations. +
+Kito: Are there things needed other than relocations? As Jessica says, may be able to find Microsoft people to collaborate with. Something we need to figure out. +
+Jiawei: Could ask RISC-V International to help us establish contact with relevant people. +
+Kito: By the way, definitely not within the scope of psABI 2.0. +
+Petr: Something I've been looking into on the Google side. Tried to use our contacts at Microsoft, nobody seems to know who would own this there. Agree it's pressing, don't have a proper way of building UEFI images, and workaround of using ELFs has some issues.
+
+== Doc improvement
+
+Kito: Made various minor improvements. Suggest we focus on getting Zalasr and PLT rules in, then move to ARC review. +
+Sam: Sounds reasonable.
+
+== Shadow stack save/restore libcalls
+
+Sam: No longer proposing changing names, someone pointed out we'd need to change everything in libunwind too. Now just proposing marking them. Also proposing adding a software shadow call stack property. +
+Kito: GCC has received a patch in the last week to add software shadow stack support, so may support that in the next release. +
+Sam: On the LLVM side, next step is agreeing what the runtime does. Probably some more work for musl/glibc, but want to make it work on the embedded side. Someone at Global Foundries is also interested. Proposals on LLVM Discourse to make it more complicated, but proposer has accepted doesn't win you much, so accepted next steps are working on markings and runtime, not add more routines for probing, overflowing shadow call stack space, etc. So not getting much more complicated.
+
+== LP64E
+
+Craig: GCC and LLVM both implement an LP64E ABI, but not documented in the psABI. GCC will emit a deprecation warning if you try to use it. Think they also disagree on how to implement variadic arguments. +
+Kito: Palmer filed a PR for it a few years ago, but work stalled. +
+Sam: Also not sure of the state of ILP32E. +
+Kito: Have this note. +
+Sam: Not sure quite what subject to change means. Is that experimental? Now we have definitely-experimental ABIs, probably worth labelling them as such, like big-endian. May then open the door for LP64E as experimental. +
+Craig: Do we have a list of what the corner cases are? +
+Kito: Don't have a concrete list. Should start collecting that. +
+Craig: On LP64E should we make GCC and LLVM match? +
+Jessica: Assume everyone agrees they should match, question is which is right? Presumably step zero is to write down what those disagreements are. +
+Craig: Issue is passing int128 to a variadic function. For normal RV64, we give it 16 byte alignment and so pick an even/odd register pair. Under EABI for RV32 with equivalent int64, stack alignment is used which is only 4, so doesn't use an even/odd pair. Rule also there for int128 on RV64 automatically due to its 8 byte stack alignment, but LLVM doesn't do that, because it decides it based on RV32E, not stack alignment, so missed. +
+Jessica: Related question of whether we should even keep the 8 byte stack alignment. Not convinced it's worth it. +
+Craig: Should document this.
+
+== Vector ABI
+
+Sam: What's the implementation status of the vector ABI, so passing and returning vectors in registers? +
+Kito: Spec side or implementation? +
+Sam: Either +
+Kito: Spec side believe has been there for a while, and have it in both GCC and LLVM as well. +
+Sam: Thanks +
+Kito: Main issue has been around fixed-length / VLS calling convention, have had patches in the past for that. +
+Sam: Using that ABI requires source-code annotations on the functions, right? +
+Kito: If you use scalable vector type in argument or return type, will automatically become vector calling convention. For fixed-length vector, need annotation.
